@@ -9,19 +9,28 @@ plugins {
 }
 
 group = "dev.lutergs"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 java.sourceCompatibility = JavaVersion.VERSION_17
+
+val springBootVersion = "3.0.6"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+    // mongoDB reactive
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:${springBootVersion}")
+
+    // MD5 hashing
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
 }

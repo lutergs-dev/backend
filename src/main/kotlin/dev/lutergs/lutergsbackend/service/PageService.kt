@@ -1,16 +1,32 @@
 package dev.lutergs.lutergsbackend.service
 
-import dev.lutergs.lutergsbackend.repository.PageDataEntity
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
-class PageDataService(
-    private val pageDataRepository: PageInfoRepository
+class PageService(
+    private val pageDataRepository: PageRepository
 ) {
 
-    fun getAllPageDataByName(name: String): Mono<PageDataEntity> {
-        return this.pageDataRepository.getPageData(name)
+    fun getAllPageDataByName(name: String): Mono<Page> {
+        return this.pageDataRepository.getPage(name)
     }
+
+    fun getAllPageName(): Flux<String> {
+        return this.pageDataRepository.getAllPageNames()
+    }
+
+//    fun addParagraphToPage(pageName: String, paragraphAddRequest: ParagraphAddRequest) {
+//
+//        this.pageDataRepository.getPage(pageName)
+//            .flatMap {
+//                when (paragraphAddRequest.getJobType()) {
+//
+//                }
+//                paragraphAddRequest.getJobType()
+//            }
+//
+//    }
 
 }

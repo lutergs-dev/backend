@@ -3,6 +3,11 @@ package dev.lutergs.lutergsbackend.service
 import jakarta.xml.bind.DatatypeConverter
 import java.security.MessageDigest
 
+
+enum class Job {
+    CREATE, ADD_FIRST, ADD_BETWEEN, ADD_LAST, MODIFY, DELETE
+}
+
 data class Page(
     val name: String,
     val paragraphs: List<Paragraph>
@@ -24,7 +29,7 @@ data class Paragraph(
         }
 
         fun fromString(data: String): Paragraph {
-            return Paragraph(data, Paragraph.hashStringToMd5(data))
+            return Paragraph(data, hashStringToMd5(data))
         }
     }
 }
