@@ -33,6 +33,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: lutergs-backend
-          path: lutergs-backend*
+          path: ./build/native/nativeCompile/*
 
 
