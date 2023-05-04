@@ -1,0 +1,10 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGO_USERNAME:'username'}:${MONGO_PASSWORD:'password'}@${MONGO_URL:'url'}/${MONGO_DATABASE:'db'}?retryWrites=true&w=majority
+
+server:
+  port: ${SERVER_PORT:0}
+
+custom:
+  frontend-server: ${FRONT_SERVER_URL:'front-server'}

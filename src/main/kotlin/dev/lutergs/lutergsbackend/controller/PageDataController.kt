@@ -2,30 +2,15 @@ package dev.lutergs.lutergsbackend.controller
 
 import dev.lutergs.lutergsbackend.service.PageService
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import reactor.core.publisher.Mono
 
-@Configuration
-class PageDataController(
-    private val apiHandler: ApiHandler
-) {
 
-    @Bean
-    fun route() = router {
-        accept(MediaType.APPLICATION_JSON).nest {
-            GET("/page/list", apiHandler::getAllPageList)
-            GET("/page/{name}", apiHandler::getPageData)
-            POST("/page/{name}", apiHandler::postPageData)
-        }
-    }
-}
 
 @Component
-class ApiHandler(
+class PageDataController(
     private val pageService: PageService,
     @Value("\${custom.frontend-server}") private val frontendServerUrl: String,
 ) {
@@ -37,6 +22,7 @@ class ApiHandler(
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Access-Control-Allow-Origin", this.frontendServerUrl)
                 .body(fluxNames.collectList().flatMap { Mono.just(AllPageNames(it)) })
+
             }
     }
 
