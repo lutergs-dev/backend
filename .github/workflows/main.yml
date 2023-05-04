@@ -1,4 +1,4 @@
-name: Build and Publish to Docker
+name: Build and upload native image
 
 on:
   push:
@@ -13,9 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # checkout branch
-      - uses: actions/checkout@v3
+      - name: checkout branch
+        uses: actions/checkout@v3
 
-      - uses: graalvm/setup-graalvm@v1
+      - name: init graalVM
+        uses: graalvm/setup-graalvm@v1
         with:
           version: 'latest'
           java-version: '17'
@@ -23,7 +25,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
-      - name: Example Step
+      - name: build native image
         run: |
           ./gradlew nativeCompile
+
+      - name: upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: lutergs-backend
+          path: lutergs-backend*
+
 
