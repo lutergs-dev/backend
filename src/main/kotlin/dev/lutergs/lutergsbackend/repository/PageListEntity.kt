@@ -1,5 +1,6 @@
 package dev.lutergs.lutergsbackend.repository
 
+import dev.lutergs.lutergsbackend.utils.Hasher
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
@@ -10,6 +11,15 @@ class PageListEntity {
     @Id
     var id: String? = null
     var name: String? = null
+
+    companion object {
+        fun fromPageEntity(pageEntity: PageEntity): PageListEntity {
+            return PageListEntity().apply {
+                this.id = pageEntity.id
+                this.name = pageEntity.name
+            }
+        }
+    }
 }
 
 @Repository

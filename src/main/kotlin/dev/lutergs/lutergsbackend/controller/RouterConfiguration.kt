@@ -7,16 +7,20 @@ import org.springframework.web.reactive.function.server.router
 
 @Configuration
 class RouterConfiguration(
-    private val pageDataController: PageDataController
+    private val pageDataController: PageDataController,
+    private val tinyMceController: TinyMceController
 ) {
 
     @Bean
     fun route() = router {
         accept(MediaType.APPLICATION_JSON).nest {
-            // from
+            // from pageDataController
             GET("/page/list", pageDataController::getAllPageList)
             GET("/page/{name}", pageDataController::getPageData)
-            POST("/page/{name}", pageDataController::postPageData)
+            POST("/page", pageDataController::postPageData)
+
+            // from tinyMceController
+            GET("/tinymce/apikey", tinyMceController::getTinyMceApiKey)
         }
     }
 }

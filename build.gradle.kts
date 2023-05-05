@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "dev.lutergs"
-version = "0.0.1"
+version = "0.0.2"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 val springBootVersion = "3.0.6"

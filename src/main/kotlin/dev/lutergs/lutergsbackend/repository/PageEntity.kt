@@ -2,6 +2,7 @@ package dev.lutergs.lutergsbackend.repository
 
 import dev.lutergs.lutergsbackend.service.Page
 import dev.lutergs.lutergsbackend.service.Paragraph
+import dev.lutergs.lutergsbackend.utils.Hasher
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
@@ -18,6 +19,16 @@ class PageEntity {
     fun toPage(): Page {
         return Page(this.name!!, this.paragraphs!!.map(ParagraphEntity::toParagraph))
     }
+
+    companion object {
+        fun fromPage(page: Page): PageEntity {
+            return PageEntity().apply {
+                this.id = Hasher.hashStringToMd5(page.name)
+                this.name = page.name
+                this.paragraphs = page.paragraphs.map { ParagraphEntity.fromParagraph(it) }
+            }
+        }
+    }
 }
 
 class ParagraphEntity {
@@ -26,6 +37,15 @@ class ParagraphEntity {
 
     fun toParagraph(): Paragraph {
         return Paragraph(this.data!!, this.hash!!)
+    }
+
+    companion object {
+        fun fromParagraph(paragraph: Paragraph): ParagraphEntity {
+            return ParagraphEntity().apply {
+                this.data = paragraph.data
+                this.hash = paragraph.hash
+            }
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package dev.lutergs.lutergsbackend.service
 
+import dev.lutergs.lutergsbackend.utils.Hasher
 import jakarta.xml.bind.DatatypeConverter
 import java.security.MessageDigest
 
@@ -18,18 +19,8 @@ data class Paragraph(
     val hash: String
 ) {
     companion object {
-
-        private val messageDigest: MessageDigest = MessageDigest.getInstance("MD5")
-
-        private fun hashStringToMd5(target: String): String {
-            messageDigest.reset()
-            messageDigest.update(target.toByteArray())
-            return messageDigest.digest()
-                .let { DatatypeConverter.printHexBinary(it).uppercase() }
-        }
-
         fun fromString(data: String): Paragraph {
-            return Paragraph(data, hashStringToMd5(data))
+            return Paragraph(data, Hasher.hashStringToMd5(data))
         }
     }
 }

@@ -8,3 +8,5 @@ server:
 
 custom:
   frontend-server: ${FRONT_SERVER_URL:'front-server'}
+  tinymce:
+    api-key: ${TINYMCE_APIKEY:'api-key'}

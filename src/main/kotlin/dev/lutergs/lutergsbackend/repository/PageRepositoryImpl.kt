@@ -7,7 +7,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 
-
 @Repository
 class PageRepositoryRepositoryImpl(
     private val pageInfoReactiveMongoRepository: PageInfoReactiveMongoRepository,
@@ -22,5 +21,21 @@ class PageRepositoryRepositoryImpl(
     override fun getAllPageNames(): Flux<String> {
         return this.pageListReactiveMongoRepository.findAll()
             .flatMap { Mono.justOrEmpty(it.name) }
+    }
+
+    override fun savePage(page: Page): Mono<PageListEntity> {
+        return PageEntity.fromPage(page)
+            .let { pageEntity ->
+                this.pageInfoReactiveMongoRepository.findById(pageEntity.id!!)
+                    .hasElement()
+                    .flatMap { alreadyExists ->
+                        if (alreadyExists) Mono.error(Exception("같은 제목의 글이 존재합니다"))
+                        else {
+                            this.pageInfoReactiveMongoRepository.save(pageEntity)
+                        }
+                    }.flatMap {
+                        this.pageListReactiveMongoRepository.save(PageListEntity.fromPageEntity(it))
+                    }
+            }
     }
 }

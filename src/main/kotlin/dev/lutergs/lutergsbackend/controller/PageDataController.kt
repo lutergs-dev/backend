@@ -1,26 +1,22 @@
 package dev.lutergs.lutergsbackend.controller
 
 import dev.lutergs.lutergsbackend.service.PageService
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
 import reactor.core.publisher.Mono
 
 
-
 @Component
 class PageDataController(
-    private val pageService: PageService,
-    @Value("\${custom.frontend-server}") private val frontendServerUrl: String,
+    private val pageService: PageService
 ) {
-    // TODO : ServerResponse 를 마지막에 intercept 하는 interceptor 설정 필요
 
     fun getAllPageList(request: ServerRequest): Mono<ServerResponse> {
         return this.pageService.getAllPageName()
             .let { fluxNames -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Access-Control-Allow-Origin", this.frontendServerUrl)
                 .body(fluxNames.collectList().flatMap { Mono.just(AllPageNames(it)) })
 
             }
@@ -31,18 +27,40 @@ class PageDataController(
             .let { this.pageService.getAllPageDataByName(it) }
             .let { ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("Access-Control-Allow-Origin", this.frontendServerUrl)
                 .body(it)
             }
     }
     
     fun postPageData(request: ServerRequest): Mono<ServerResponse> {
-        val pageName = request.pathVariable("name")
-        return request.bodyToMono(ParagraphAddRequest::class.java)
-            .let { ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Access-Control-Allow-Origin", this.frontendServerUrl)
-                .body(it)
+        return request.bodyToMono(NewPageRequest::class.java)
+            .let { pageRequestMono ->
+                this.pageService.addNewPage(pageRequestMono)
+                    .flatMap {
+                        ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(Mono.just(NewPageResponse("/page/${it.name!!}")))
+                    }.onErrorResume {
+                        ServerResponse.badRequest()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(Mono.just(NewPageErrorResponse(it.localizedMessage)))
+                    }
             }
     }
 }
+
+
+data class NewPageRequest(
+    val title: String,
+    val paragraphs: List<String>
+)
+
+data class NewPageResponse(
+    val data: String
+)
+
+data class NewPageErrorResponse(
+    val error: String
+)
+data class AllPageNames(
+    val names: List<String>
+)
