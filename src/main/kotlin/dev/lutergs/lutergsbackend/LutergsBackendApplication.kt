@@ -1,6 +1,7 @@
 package dev.lutergs.lutergsbackend
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.runApplication
 
 
@@ -8,5 +9,7 @@ import org.springframework.boot.runApplication
 class LutergsBackendApplication
 
 fun main(args: Array<String>) {
-    runApplication<LutergsBackendApplication>(*args)
+    SpringApplicationBuilder(LutergsBackendApplication::class.java)
+        .listeners(ApplicationContextInjector())
+        .run()
 }
