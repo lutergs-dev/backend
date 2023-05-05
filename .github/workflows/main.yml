@@ -27,6 +27,7 @@ jobs:
 
       - name: build native image
         run: |
+          echo 'spring.profiles.active=server' > ./src/main/resources/application.properties
           ./gradlew nativeCompile
 
       - name: upload binary
