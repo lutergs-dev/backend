@@ -18,5 +18,5 @@ server:
 custom:
   frontend-server: ${FRONT_SERVER_URL:'front-server'}
   s3:
-    bucket-name: ${AWS_BUCKET_NAME}
-    bucket-directory-prefix: ${images}
+    bucket-name: ${AWS_BUCKET_NAME:'bucket-name'}
+    bucket-directory-prefix: ${AWS_BUCKET_PREFIX:'bucket-prefix'}
