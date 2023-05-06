@@ -10,12 +10,14 @@ class PageListEntity {
     @Id
     var id: String? = null
     var name: String? = null
+    var endpoint: String? = null
 
     companion object {
         fun fromPageEntity(pageEntity: PageEntity): PageListEntity {
             return PageListEntity().apply {
                 this.id = pageEntity.id
                 this.name = pageEntity.name
+                this.endpoint = pageEntity.endpoint
             }
         }
     }

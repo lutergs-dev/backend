@@ -11,17 +11,18 @@ class PageService(
     private val pageDataRepository: PageRepository
 ) {
 
-    fun getAllPageDataByName(name: String): Mono<Page> {
-        return this.pageDataRepository.getPage(name)
+    fun getPageByEndpoint(endpoint: String): Mono<Page> {
+        return this.pageDataRepository.getPage(endpoint)
     }
 
-    fun getAllPageName(): Flux<String> {
+    fun getAllPageName(): Flux<PageList> {
         return this.pageDataRepository.getAllPageNames()
     }
 
     fun addNewPage(newPageRequest: NewPageRequest): Mono<PageListEntity> {
         return Page(
-            name = newPageRequest.title,
+            id = newPageRequest.title.id,
+            name = newPageRequest.title.name,
             paragraphs = newPageRequest.paragraphs.map { Paragraph.fromString(it) }
         ).let {
             this.pageDataRepository.savePage(it)

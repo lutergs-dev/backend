@@ -14,10 +14,15 @@ class PageEntity {
     @Id
     var id: String? = null
     var name: String? = null
+    var endpoint: String? = null
     var paragraphs: List<ParagraphEntity>? = null
 
     fun toPage(): Page {
-        return Page(this.name!!, this.paragraphs!!.map(ParagraphEntity::toParagraph))
+        return Page(
+            id = this.endpoint!!,
+            name = this.name!!,
+            paragraphs = this.paragraphs!!.map(ParagraphEntity::toParagraph)
+        )
     }
 
     companion object {
@@ -25,6 +30,7 @@ class PageEntity {
             return PageEntity().apply {
                 this.id = Hasher.hashStringToMd5(page.name)
                 this.name = page.name
+                this.endpoint = page.id
                 this.paragraphs = page.paragraphs.map { ParagraphEntity.fromParagraph(it) }
             }
         }
@@ -51,5 +57,5 @@ class ParagraphEntity {
 
 @Repository
 interface PageInfoReactiveMongoRepository: ReactiveMongoRepository<PageEntity, String> {
-    fun getPageDataByName(name: String): Mono<PageEntity>
+    fun getPageDataByEndpoint(name: String): Mono<PageEntity>
 }

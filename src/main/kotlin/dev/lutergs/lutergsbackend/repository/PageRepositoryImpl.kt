@@ -1,6 +1,7 @@
 package dev.lutergs.lutergsbackend.repository
 
 import dev.lutergs.lutergsbackend.service.page.Page
+import dev.lutergs.lutergsbackend.service.page.PageList
 import dev.lutergs.lutergsbackend.service.page.PageRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
@@ -13,14 +14,14 @@ class PageRepositoryRepositoryImpl(
     private val pageListReactiveMongoRepository: PageListReactiveMongoRepository
 ): PageRepository {
 
-    override fun getPage(name: String): Mono<Page> {
-        return this.pageInfoReactiveMongoRepository.getPageDataByName(name)
+    override fun getPage(endpoint: String): Mono<Page> {
+        return this.pageInfoReactiveMongoRepository.getPageDataByEndpoint(endpoint)
             .flatMap { Mono.just(it.toPage()) }
     }
 
-    override fun getAllPageNames(): Flux<String> {
+    override fun getAllPageNames(): Flux<PageList> {
         return this.pageListReactiveMongoRepository.findAll()
-            .flatMap { Mono.justOrEmpty(it.name) }
+            .flatMap { Mono.justOrEmpty(PageList(endpoint = it.endpoint!!, name = it.name!!)) }
     }
 
     override fun savePage(page: Page): Mono<PageListEntity> {

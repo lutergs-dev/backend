@@ -16,7 +16,7 @@ class RouterConfiguration(
         accept(MediaType.APPLICATION_JSON).nest {
             // from pageDataController
             GET("/page/list", pageDataController::getAllPageList)
-            GET("/page/{name}", pageDataController::getPageData)
+            GET("/page/{endpoint}", pageDataController::getPageData)
             POST("/page", pageDataController::postPageData)
 
             // from imageController

@@ -1,5 +1,6 @@
 package dev.lutergs.lutergsbackend.controller
 
+import dev.lutergs.lutergsbackend.service.page.PageList
 import dev.lutergs.lutergsbackend.service.page.PageService
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -17,13 +18,12 @@ class PageDataController(
             .let { fluxNames -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fluxNames.collectList().flatMap { Mono.just(AllPageNames(it)) })
-
             }
     }
 
     fun getPageData(request: ServerRequest): Mono<ServerResponse> {
-        return request.pathVariable("name")
-            .let { this.pageService.getAllPageDataByName(it) }
+        return request.pathVariable("endpoint")
+            .let { this.pageService.getPageByEndpoint(it) }
             .let { ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(it)
@@ -47,8 +47,13 @@ class PageDataController(
 
 
 data class NewPageRequest(
-    val title: String,
+    val title: Title,
     val paragraphs: List<String>
+)
+
+data class Title(
+    val id: String,
+    val name: String
 )
 
 data class NewPageResponse(
@@ -56,5 +61,5 @@ data class NewPageResponse(
 )
 
 data class AllPageNames(
-    val names: List<String>
+    val pages: List<PageList>
 )

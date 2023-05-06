@@ -8,6 +8,7 @@ enum class Job {
 }
 
 data class Page(
+    val id: String,
     val name: String,
     val paragraphs: List<Paragraph>
 )
@@ -22,3 +23,8 @@ data class Paragraph(
         }
     }
 }
+
+data class PageList(
+    val endpoint: String,
+    val name: String
+)
