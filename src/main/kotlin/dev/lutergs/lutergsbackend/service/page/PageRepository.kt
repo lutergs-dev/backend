@@ -1,4 +1,4 @@
-package dev.lutergs.lutergsbackend.service
+package dev.lutergs.lutergsbackend.service.page
 
 import dev.lutergs.lutergsbackend.repository.PageListEntity
 import reactor.core.publisher.Flux

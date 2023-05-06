@@ -1,4 +1,4 @@
-package dev.lutergs.lutergsbackend.service
+package dev.lutergs.lutergsbackend.service.page
 
 import dev.lutergs.lutergsbackend.controller.NewPageRequest
 import dev.lutergs.lutergsbackend.repository.PageListEntity
@@ -19,15 +19,12 @@ class PageService(
         return this.pageDataRepository.getAllPageNames()
     }
 
-    fun addNewPage(newPageRequest: Mono<NewPageRequest>): Mono<PageListEntity> {
-        return newPageRequest
-            .flatMap { pageRequest ->
-                Mono.just(Page(
-                    name = pageRequest.title,
-                    paragraphs = pageRequest.paragraphs.map { Paragraph.fromString(it) }
-                ))
-            }.flatMap {
-                this.pageDataRepository.savePage(it)
-            }
+    fun addNewPage(newPageRequest: NewPageRequest): Mono<PageListEntity> {
+        return Page(
+            name = newPageRequest.title,
+            paragraphs = newPageRequest.paragraphs.map { Paragraph.fromString(it) }
+        ).let {
+            this.pageDataRepository.savePage(it)
+        }
     }
 }

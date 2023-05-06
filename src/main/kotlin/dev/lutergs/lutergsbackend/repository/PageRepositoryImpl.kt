@@ -1,7 +1,7 @@
 package dev.lutergs.lutergsbackend.repository
 
-import dev.lutergs.lutergsbackend.service.Page
-import dev.lutergs.lutergsbackend.service.PageRepository
+import dev.lutergs.lutergsbackend.service.page.Page
+import dev.lutergs.lutergsbackend.service.page.PageRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono

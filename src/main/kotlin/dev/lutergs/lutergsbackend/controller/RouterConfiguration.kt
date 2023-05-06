@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.server.router
 @Configuration
 class RouterConfiguration(
     private val pageDataController: PageDataController,
-    private val tinyMceController: TinyMceController
+    private val imageController: ImageController
 ) {
 
     @Bean
@@ -19,8 +19,12 @@ class RouterConfiguration(
             GET("/page/{name}", pageDataController::getPageData)
             POST("/page", pageDataController::postPageData)
 
-            // from tinyMceController
-            GET("/tinymce/apikey", tinyMceController::getTinyMceApiKey)
+            // from imageController
+            GET("/image", imageController::getPresignedImageUrl)
         }
     }
 }
+
+data class ErrorResponse(
+    val error: String
+)

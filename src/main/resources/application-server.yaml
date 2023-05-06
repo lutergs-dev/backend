@@ -3,10 +3,20 @@ spring:
     mongodb:
       uri: mongodb+srv://${MONGO_USERNAME:'username'}:${MONGO_PASSWORD:'password'}@${MONGO_URL:'url'}/${MONGO_DATABASE:'db'}?retryWrites=true&w=majority
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY:'access-key'}
+        secret-key: ${AWS_SECRET_KEY:'secret-key'}
+        instance-profile: true
+      region:
+        static: ap-northeast-2
+
 server:
   port: ${SERVER_PORT:0}
 
 custom:
   frontend-server: ${FRONT_SERVER_URL:'front-server'}
-  tinymce:
-    api-key: ${TINYMCE_APIKEY:'api-key'}
+  s3:
+    bucket-name: ${AWS_BUCKET_NAME}
+    bucket-directory-prefix: ${images}

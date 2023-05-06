@@ -1,6 +1,5 @@
 package dev.lutergs.lutergsbackend.repository
 
-import dev.lutergs.lutergsbackend.utils.Hasher
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository

@@ -1,8 +1,6 @@
-package dev.lutergs.lutergsbackend.service
+package dev.lutergs.lutergsbackend.service.page
 
 import dev.lutergs.lutergsbackend.utils.Hasher
-import jakarta.xml.bind.DatatypeConverter
-import java.security.MessageDigest
 
 
 enum class Job {

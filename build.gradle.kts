@@ -13,6 +13,7 @@ version = "0.0.2"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 val springBootVersion = "3.0.6"
+val springCloudAwsVersion = "3.0.0"
 
 repositories {
     mavenCentral()
@@ -30,6 +31,11 @@ dependencies {
 
     // MD5 hashing
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
+
+    // AWS
+    implementation(platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"))
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
+
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")

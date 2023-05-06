@@ -1,7 +1,6 @@
 package dev.lutergs.lutergsbackend.controller
 
-import dev.lutergs.lutergsbackend.service.PageService
-import org.springframework.http.HttpStatusCode
+import dev.lutergs.lutergsbackend.service.page.PageService
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.*
@@ -33,17 +32,15 @@ class PageDataController(
     
     fun postPageData(request: ServerRequest): Mono<ServerResponse> {
         return request.bodyToMono(NewPageRequest::class.java)
-            .let { pageRequestMono ->
-                this.pageService.addNewPage(pageRequestMono)
-                    .flatMap {
-                        ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(Mono.just(NewPageResponse("/page/${it.name!!}")))
-                    }.onErrorResume {
-                        ServerResponse.badRequest()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .body(Mono.just(NewPageErrorResponse(it.localizedMessage)))
-                    }
+            .flatMap { this.pageService.addNewPage(it) }
+            .flatMap {
+                ServerResponse.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(NewPageResponse("/page/${it.name!!}")))
+            }.onErrorResume {
+                ServerResponse.badRequest()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(ErrorResponse(it.localizedMessage)))
             }
     }
 }
@@ -58,9 +55,6 @@ data class NewPageResponse(
     val data: String
 )
 
-data class NewPageErrorResponse(
-    val error: String
-)
 data class AllPageNames(
     val names: List<String>
 )
