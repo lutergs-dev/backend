@@ -8,7 +8,8 @@ import org.springframework.web.reactive.function.server.router
 @Configuration
 class RouterConfiguration(
     private val pageDataController: PageDataController,
-    private val imageController: ImageController
+    private val imageController: ImageController,
+    private val guestbookController: GuestbookController
 ) {
 
     @Bean
@@ -21,6 +22,11 @@ class RouterConfiguration(
 
             // from imageController
             GET("/image", imageController::getPresignedImageUrl)
+
+            // from guestbookController
+            GET("/guestbook", guestbookController::getComments)
+            POST("/guestbook", guestbookController::postComment)
+            DELETE("/guestbook", guestbookController::deleteComments)
         }
     }
 }

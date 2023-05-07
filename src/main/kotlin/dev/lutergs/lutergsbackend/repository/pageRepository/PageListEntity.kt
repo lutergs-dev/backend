@@ -1,4 +1,4 @@
-package dev.lutergs.lutergsbackend.repository
+package dev.lutergs.lutergsbackend.repository.pageRepository
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document

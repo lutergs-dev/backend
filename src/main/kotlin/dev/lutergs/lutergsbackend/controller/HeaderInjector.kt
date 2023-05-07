@@ -42,7 +42,8 @@ class CustomWebFilter(
         return exchange.response.headers
             .apply {
                 this.add("Access-Control-Allow-Origin", frontendServerUrl)
-                this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+                this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+                this.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
             }.let { chain.filter(exchange) }
     }
 }

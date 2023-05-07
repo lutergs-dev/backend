@@ -16,6 +16,9 @@ class ApplicationContextInjector: ApplicationListener<ApplicationEnvironmentPrep
         val environment = event.environment
         val envName = environment.getProperty("spring.profiles.active")
 
+        // set current timezone to Seoul
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"))
+
         this.logger.info(String.format("Inject variable info to Spring complete! current env is %s", envName))
         this.printCurrentProperties(environment)
     }

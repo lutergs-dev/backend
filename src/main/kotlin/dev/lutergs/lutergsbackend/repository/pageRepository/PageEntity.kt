@@ -1,4 +1,4 @@
-package dev.lutergs.lutergsbackend.repository
+package dev.lutergs.lutergsbackend.repository.pageRepository
 
 import dev.lutergs.lutergsbackend.service.page.Page
 import dev.lutergs.lutergsbackend.service.page.Paragraph
