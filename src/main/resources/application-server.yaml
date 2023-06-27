@@ -20,3 +20,5 @@ custom:
   s3:
     bucket-name: ${AWS_BUCKET_NAME:'bucket-name'}
     bucket-directory-prefix: ${AWS_BUCKET_PREFIX:'bucket-prefix'}
+  encrypt:
+    salt: ${ENCRYPTION_SALT:'salt'}

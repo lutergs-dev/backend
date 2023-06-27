@@ -9,7 +9,8 @@ import org.springframework.web.reactive.function.server.router
 class RouterConfiguration(
     private val pageDataController: PageDataController,
     private val imageController: ImageController,
-    private val guestbookController: GuestbookController
+    private val guestbookController: GuestbookController,
+    private val userController: UserController
 ) {
 
     @Bean
@@ -27,6 +28,12 @@ class RouterConfiguration(
             GET("/guestbook", guestbookController::getComments)
             POST("/guestbook", guestbookController::postComment)
             DELETE("/guestbook", guestbookController::deleteComments)
+
+            // from userController
+            GET("/user", userController::verifyUser)
+            POST("/user", userController::createUser)
+            DELETE("/user", userController::deleteUser)
+            PATCH("/user", userController::changePassword)
         }
     }
 }
