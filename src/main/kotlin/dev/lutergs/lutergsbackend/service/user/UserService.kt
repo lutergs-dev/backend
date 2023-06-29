@@ -1,49 +1,34 @@
 package dev.lutergs.lutergsbackend.service.user
 
-import dev.lutergs.lutergsbackend.controller.ChangeUserPasswordDto
-import dev.lutergs.lutergsbackend.controller.RawUser
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class UserService(
+    private val oAuthRequester: OAuthRequester,
     private val userRepository: UserRepository,
-    @Value("\${custom.encrypt.salt}") private val salt: String
+    private val tokenGenerator: TokenGenerator
 ) {
 
-    fun createUser(rawUser: RawUser): Mono<Boolean> {
-        User.fromRawUser(rawUser, this.salt).also { println(it) }
-        return Mono.just(true)
+    // get user info using JWT token
+    fun getUser(token: String): Mono<User> {
+        return this.tokenGenerator.getEmailFromToken(token)
+            .let { this.userRepository.getUser(it) }
+            .switchIfEmpty { Mono.error(NotFoundException()) }
     }
 
-    fun verifyUser(rawUser: RawUser): Mono<Boolean> {
-        return verifyUser(User.fromRawUser(rawUser, salt))
+    fun signUp(code: String, redirectionUrl: String): Mono<String> {
+        return this.oAuthRequester.getUserByCode(code, redirectionUrl)
+            .flatMap { this.userRepository.saveUser(it) }
+            .flatMap { Mono.just(this.tokenGenerator.createTokenFromUser(it)) }
     }
 
-    fun verifyUser(user: User): Mono<Boolean> {
-        return this.userRepository.getUser(user)
-            .flatMap { dbSavedUser -> Mono.just(user.password == dbSavedUser.password) }
-            .defaultIfEmpty(false)
-    }
-
-    fun deleteUser(rawUser: RawUser): Mono<Boolean> {
-        return User.fromRawUser(rawUser, salt)
-            .let { user -> this.verifyUser(user)
-                .flatMap { isVerified ->
-                    if (isVerified) this.userRepository.deleteUser(user).flatMap { Mono.just(true) }
-                    else Mono.just(false)
-                }
-            }
-    }
-
-    fun changePassword(changeUserPasswordDto: ChangeUserPasswordDto): Mono<Boolean> {
-        return this.verifyUser(RawUser(id = changeUserPasswordDto.id, password = changeUserPasswordDto.oldPassword))
-            .flatMap { isValid ->
-                if (isValid) this.userRepository
-                    .updateUser(id = changeUserPasswordDto.id, oldPassword = changeUserPasswordDto.newPassword, newPassword = changeUserPasswordDto.newPassword)
-                    .flatMap { Mono.just(true) }
-                else Mono.just(false)
-            }
+    fun login(code: String, redirectionUrl: String): Mono<String> {
+        return this.oAuthRequester.getUserByCode(code, redirectionUrl)
+            .flatMap { this.userRepository.getUser(it.email) }
+            .flatMap { Mono.just(this.tokenGenerator.createTokenFromUser(it)) }
+            .switchIfEmpty { Mono.error(NotFoundException()) }
     }
 }

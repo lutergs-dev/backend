@@ -1,26 +1,37 @@
 package dev.lutergs.lutergsbackend.service.user
 
-import dev.lutergs.lutergsbackend.controller.RawUser
-import dev.lutergs.lutergsbackend.repository.UserEntity
+import java.lang.IllegalArgumentException
 import java.time.LocalDateTime
-import java.util.Base64
-import javax.crypto.Cipher
-import javax.crypto.spec.SecretKeySpec
+import java.util.regex.Pattern
 
 data class User(
-    val id: String,
-    val password: String        // need to implement basic auth (salt and encode)
-    val createdAt: LocalDateTime
+    val email: Email,
+    val createdAt: LocalDateTime?
+)
+
+data class Email private constructor(
+    val username: String,
+    val provider: String
 ) {
     companion object {
-        fun fromRawUser(rawUser: RawUser, salt: String): User {
-            return Cipher.getInstance("AES/ECB/PKCS5Padding")
-                .apply { this.init(
-                    Cipher.ENCRYPT_MODE,
-                    SecretKeySpec(salt.toByteArray(), "AES")) }
-                .doFinal(rawUser.password.toByteArray())
-                .let { Base64.getEncoder().encodeToString(it) }
-                .let { User(id = rawUser.id, password = it, createdAt = LocalDateTime.now()) }
+
+        private val emailPattern = Pattern.compile("^[A-Za-z](.*)([@]{1})(.{1,})(\\.)(.{1,})")
+        fun fromFullString(value: String): Email {
+            if (isValidEmail(value)) {
+                val (username, provider) = value.split("@")
+                return Email(username, provider)
+            }
+            throw IllegalArgumentException("Not valid email!")
         }
+
+        private fun isValidEmail(value: String): Boolean {
+            return this.emailPattern
+                .matcher(value)
+                .matches()
+        }
+    }
+
+    override fun toString(): String {
+        return "${this.username}@${this.provider}"
     }
 }

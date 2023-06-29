@@ -1,6 +1,8 @@
 package dev.lutergs.lutergsbackend.utils
 
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.util.*
 
 
 fun String?.orElse(alternativeValue: String): String {
@@ -12,4 +14,9 @@ fun String?.orElse(alternativeValue: String): String {
 
 fun String.toLocalDateTime(): LocalDateTime {
     return LocalDateTime.parse(this)
+}
+
+fun LocalDateTime.toDate(offsetHour: Int): Date {
+    return this.toInstant(ZoneOffset.ofHours(9))
+        .let { Date.from(it) }
 }

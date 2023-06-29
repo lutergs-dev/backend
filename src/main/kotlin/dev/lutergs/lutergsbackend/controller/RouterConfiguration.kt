@@ -10,7 +10,7 @@ class RouterConfiguration(
     private val pageDataController: PageDataController,
     private val imageController: ImageController,
     private val guestbookController: GuestbookController,
-    private val userController: UserController
+    private val userController: UserController,
 ) {
 
     @Bean
@@ -29,11 +29,10 @@ class RouterConfiguration(
             POST("/guestbook", guestbookController::postComment)
             DELETE("/guestbook", guestbookController::deleteComments)
 
-            // from userController
-            GET("/user", userController::verifyUser)
-            POST("/user", userController::createUser)
-            DELETE("/user", userController::deleteUser)
-            PATCH("/user", userController::changePassword)
+            // from oauthController
+            GET("/user", userController::getUser)
+            GET("/user/login", userController::login)
+            GET("/user/signup", userController::signUp)
         }
     }
 }

@@ -35,7 +35,7 @@ fun corsWebFilter(): CorsWebFilter {
 
 @Component
 class CustomWebFilter(
-    @Value("\${custom.frontend-server}") private val frontendServerUrl: String
+    @Value("\${custom.server.url.frontend}") private val frontendServerUrl: String
 ): WebFilter {
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
@@ -44,6 +44,7 @@ class CustomWebFilter(
                 this.add("Access-Control-Allow-Origin", frontendServerUrl)
                 this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
                 this.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+                this.add("Access-Control-Allow-Credentials", "true")
             }.let { chain.filter(exchange) }
     }
 }

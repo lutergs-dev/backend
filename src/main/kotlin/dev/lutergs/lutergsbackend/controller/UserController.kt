@@ -2,98 +2,79 @@ package dev.lutergs.lutergsbackend.controller
 
 import dev.lutergs.lutergsbackend.service.user.UserService
 import dev.lutergs.lutergsbackend.utils.orElse
-import org.springframework.http.MediaType
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+
+import org.springframework.web.reactive.function.server.body
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.body
+import org.springframework.web.reactive.function.server.queryParamOrNull
 import reactor.core.publisher.Mono
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseCookie
+import java.net.URI
+import java.time.Duration
 
 @Component
 class UserController(
+    @Value("\${custom.server.url.backend}") private val backendServerUrl: String,
+    @Value("\${custom.server.url.frontend}") private val frontServerUrl: String,
+    @Value("\${custom.server.domain.backend}") private val backendDomain: String,
     private val userService: UserService
 ) {
+    private val cookieName = "lutergs.dev"
 
-    fun verifyUser(request: ServerRequest): Mono<ServerResponse> {
-        return request.bodyToMono(RawUser::class.java)
-            .flatMap {
-                if (it.id.isNotBlank() && it.password.isNotBlank()) {
-                    this.userService.verifyUser(it)
-                } else {
-                    Mono.error(IllegalArgumentException("잘못된 아이디 혹은 비밀번호 형식입니다."))
-                }
-            }
-            .flatMap {
-                ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(it))
-            }.onErrorResume {
-                ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
+    fun getUser(request: ServerRequest): Mono<ServerResponse> {
+        return request.cookies()[cookieName]
+            ?.find { it.name == cookieName }
+            ?.let { this.userService.getUser(it.value) }
+            ?.flatMap { ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(it)) }
+            ?.onErrorResume { ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString())))) }
+            ?: ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(ErrorResponse("not valid token")))
     }
 
-    fun createUser(request: ServerRequest): Mono<ServerResponse> {
-        return request.bodyToMono(RawUser::class.java)
-            .flatMap {
-                if (it.id.isNotBlank() && it.password.isNotBlank()) {
-                    this.userService.createUser(it)
-                } else {
-                    Mono.error(IllegalArgumentException("잘못된 아이디 혹은 비밀번호 형식입니다."))
-                }
-            }
-            .flatMap {
-                ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(it))
-            }.onErrorResume {
+    fun login(request: ServerRequest): Mono<ServerResponse> {
+        return request.queryParamOrNull("code")
+            ?.let { code -> this.userService.login(code, "${backendServerUrl}/user/login") }
+            ?.flatMap { ServerResponse
+                .permanentRedirect(URI.create("${frontServerUrl}/user"))
+                .cookie(this.createCookie(it))
+                .build() }
+            ?.onErrorResume {
                 ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
+            } ?: ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
+            .body(Mono.just(ErrorResponse("Google OAuth request malformed!")))
     }
 
-    fun deleteUser(request: ServerRequest): Mono<ServerResponse> {
-        return request.bodyToMono(RawUser::class.java)
-            .flatMap {
-                if (it.id.isNotBlank() && it.password.isNotBlank()) {
-                    this.userService.deleteUser(it)
-                } else {
-                    Mono.error(IllegalArgumentException("잘못된 아이디 혹은 비밀번호 형식입니다."))
-                }
-            }
-            .flatMap {
-                ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(it))
-            }.onErrorResume {
+    fun signUp(request: ServerRequest): Mono<ServerResponse> {
+        return request.queryParamOrNull("code")
+            ?.let { code -> this.userService.signUp(code, "${backendServerUrl}/user/signup") }
+            ?.flatMap { ServerResponse
+                .permanentRedirect(URI.create("http://localhost:3000/user"))
+                .cookie(this.createCookie(it))
+                .build()
+                .log()}
+            ?.onErrorResume {
                 ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
+            } ?: ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
+            .body(Mono.just(ErrorResponse("Google OAuth request malformed!")))
     }
 
-    fun changePassword(request: ServerRequest): Mono<ServerResponse> {
-        return request.bodyToMono(ChangeUserPasswordDto::class.java)
-            .flatMap {
-                if (it.id.isNotBlank() && it.oldPassword.isNotBlank() && it.newPassword.isNotBlank()) {
-                    this.userService.changePassword(it)
-                } else {
-                    Mono.error(IllegalArgumentException("비밀번호가 잘못되었습니다."))
-                }
-            }
-            .flatMap {
-                ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(it))
-            }.onErrorResume {
-                ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
+    fun createCookie(token: String): ResponseCookie {
+        return ResponseCookie
+            .from(cookieName, token)
+            .httpOnly(true)
+            .domain(backendDomain)
+            .path("/user")
+            .maxAge(Duration.ofHours(3))
+            .secure(false)
+            .build()
     }
+
 }
-
-data class RawUser(
-    val id: String,
-    val password: String
-)
-
-data class ChangeUserPasswordDto(
-    val id: String,
-    val oldPassword: String,
-    val newPassword: String
-)
