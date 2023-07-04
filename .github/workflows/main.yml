@@ -26,15 +26,23 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
-      - name: build native image
-        run: |
-          echo 'spring.profiles.active=server' > ./src/main/resources/application.properties
-          ./gradlew nativeCompile
+#      - name: build native image
+#        run: |
+#          echo 'spring.profiles.active=server' > ./src/main/resources/application.properties
+#          ./gradlew nativeCompile
+#
+#      - name: upload binary
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: lutergs-backend
+#          path: ./build/native/nativeCompile/*
 
-      - name: upload binary
-        uses: actions/upload-artifact@v2
+      - name: login to AWS
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          name: lutergs-backend
-          path: ./build/native/nativeCompile/*
+          role-to-assume: arn:aws:iam::622621026293:role/github-actinos-lutergs-backend-main-branch
+          role-session-name: github-actions
+          aws-region: ap-northeast-2
+
 
 
