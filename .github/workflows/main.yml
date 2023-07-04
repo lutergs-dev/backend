@@ -40,7 +40,7 @@ jobs:
       - name: login to AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::622621026293:role/github-actinos-lutergs-backend-main-branch
+          role-to-assume: arn:aws:iam::622621026293:role/github-actions-lutergs-backend
           role-session-name: github-actions
           aws-region: ap-northeast-2
 
