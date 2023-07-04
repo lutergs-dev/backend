@@ -7,10 +7,14 @@ on:
 env:
   ENVS: "envs"
 
-jobs:
 
-  build:
+jobs:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    # for AWS credentials
+    permissions:
+      id-token: write
+      contents: read
     steps:
       # checkout branch
       - name: checkout branch
