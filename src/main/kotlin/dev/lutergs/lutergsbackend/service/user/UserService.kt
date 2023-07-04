@@ -14,21 +14,21 @@ class UserService(
 
     // get user info using JWT token
     fun getUser(token: String): Mono<User> {
-        return this.tokenGenerator.getEmailFromToken(token)
-            .let { this.userRepository.getUser(it) }
+        return Mono.fromCallable { this.tokenGenerator.getEmailFromToken(token) }
+            .flatMap { this.userRepository.getUser(it) }
             .switchIfEmpty { Mono.error(NotFoundException()) }
     }
 
     fun signUp(code: String, redirectionUrl: String): Mono<String> {
         return this.oAuthRequester.getUserByCode(code, redirectionUrl)
             .flatMap { this.userRepository.saveUser(it) }
-            .flatMap { Mono.just(this.tokenGenerator.createTokenFromUser(it)) }
+            .flatMap { Mono.fromCallable { this.tokenGenerator.createTokenFromUser(it) } }
     }
 
     fun login(code: String, redirectionUrl: String): Mono<String> {
         return this.oAuthRequester.getUserByCode(code, redirectionUrl)
             .flatMap { this.userRepository.getUser(it.email) }
-            .flatMap { Mono.just(this.tokenGenerator.createTokenFromUser(it)) }
+            .flatMap { Mono.fromCallable { this.tokenGenerator.createTokenFromUser(it) } }
             .switchIfEmpty { Mono.error(NotFoundException()) }
     }
 }

@@ -10,6 +10,7 @@ import dev.lutergs.lutergsbackend.service.user.Email
 import dev.lutergs.lutergsbackend.service.user.TokenGenerator
 import dev.lutergs.lutergsbackend.service.user.User
 import org.springframework.beans.TypeMismatchException
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -17,7 +18,9 @@ import java.time.format.DateTimeFormatter
 
 
 @Component
-class TokenGeneratorImpl: TokenGenerator {
+class TokenGeneratorImpl(
+    @Value("\${custom.token.expire-hour}") private val tokenExpireHour: Int
+): TokenGenerator {
 
     private val rsaKey = RSAKeyGenerator(2048, false).generate()
     private val jweEncryptor = RSAEncrypter(rsaKey)
@@ -32,16 +35,17 @@ class TokenGeneratorImpl: TokenGenerator {
     }
 
     override fun getEmailFromToken(token: String): Email {
+
         return this.decryptJWEToJWS(token)
             .let { this.decryptJWStoUser(it) }
     }
 
     private fun userToMap(user: User): Map<String, String> {
-//        val now = LocalDateTime.now()
+        val now = LocalDateTime.now()
         return mapOf(
-            Pair("email", user.email.toString())
-//            Pair("exp", now.plusHours(1).format(DateTimeFormatter.ISO_DATE)),
-//            Pair("nbf", now.format(DateTimeFormatter.ISO_DATE))
+            Pair("email", user.email.toString()),
+            Pair("exp", now.plusHours(this.tokenExpireHour.toLong()).format(DateTimeFormatter.ISO_DATE)),
+            Pair("nbf", now.format(DateTimeFormatter.ISO_DATE))
         )
     }
 
@@ -72,7 +76,7 @@ class TokenGeneratorImpl: TokenGenerator {
     private fun decryptJWStoUser(jwsObject: JWSObject): Email {
         return jwsObject.payload
             .toJSONObject()
-//            .also { this.checkValidToken(it) }
+            .also { this.checkValidToken(it) }
             .let { this.mapToEmail(it) }
     }
 
@@ -92,9 +96,8 @@ class TokenGeneratorImpl: TokenGenerator {
             Base64URL.from(second),
             Base64URL.from(third),
             Base64URL.from(forth),
-            Base64URL.from(fifth)
-        ).apply {
-            this.decrypt(jweDecrypter)
-        }.payload.toJWSObject()
+            Base64URL.from(fifth))
+        .apply { this.decrypt(jweDecrypter) }
+        .payload.toJWSObject()
     }
 }
