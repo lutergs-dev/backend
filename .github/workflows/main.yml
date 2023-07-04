@@ -1,4 +1,4 @@
-name: Build and upload native image
+name: Build and upload to AWS
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
 env:
   ENVS: "envs"
 
+# for AWS credentials
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # for AWS credentials
-    permissions:
-      id-token: write
-      contents: read
     steps:
       # checkout branch
       - name: checkout branch
