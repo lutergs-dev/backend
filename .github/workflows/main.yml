@@ -15,6 +15,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: main
     steps:
       # checkout branch
       - name: checkout branch
@@ -23,7 +24,7 @@ jobs:
       - name: get credentials of ECS
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::622621026293:role/github-actions-lutergs-backend
+          role-to-assume: ${{ secrets.AWS_ROLE_BRANCH_MAIN }}
           role-session-name: lutergs-backend
           aws-region: ap-northeast-2
 
