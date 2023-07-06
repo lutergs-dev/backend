@@ -16,9 +16,23 @@ server:
   port: ${SERVER_PORT:0}
 
 custom:
-  frontend-server: ${FRONT_SERVER_URL:'front-server'}
+  server:
+    url:
+      frontend: https://${FRONT_SERVER_DOMAIN}
+      backend: https://${BACKEND_SERVER_DOMAIN}
+    domain:
+      frontend: ${FRONT_SERVER_DOMAIN}
+      backend: ${BACKEND_SERVER_DOMAIN}
+
   s3:
-    bucket-name: ${AWS_BUCKET_NAME:'bucket-name'}
-    bucket-directory-prefix: ${AWS_BUCKET_PREFIX:'bucket-prefix'}
-  encrypt:
-    salt: ${ENCRYPTION_SALT:'salt'}
+    bucket-name: ${AWS_BUCKET_NAME}
+    bucket-directory-prefix: ${AWS_BUCKET_PREFIX}
+
+  oauth:
+    redirect-uri: https://${BACKEND_SERVER_DOMAIN}/user/signup
+    client-id: ${OAUTH_CLIENT_ID}
+    client-secret: ${OAUTH_CLIENT_SECRET}
+
+  token:
+    rsa-key-location: ${RSA_KEY_LOCATION}
+    expire-hour: ${TOKEN_EXPIRE_HOUR}

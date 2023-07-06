@@ -13,7 +13,7 @@ version = "0.0.4"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 val springBootVersion = "3.1.1"
-val springCloudAwsVersion = "3.0.0"
+val springCloudAwsVersion = "3.0.1"
 
 repositories {
     mavenCentral()
@@ -34,7 +34,9 @@ dependencies {
 
     // AWS
     implementation(platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"))
-    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:${springCloudAwsVersion}")
+//    implementation("io.awspring.cloud:spring-cloud-aws-secrets-manager:${springCloudAwsVersion}")
+
 
     // JWT
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")
