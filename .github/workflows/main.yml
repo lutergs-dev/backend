@@ -21,6 +21,11 @@ jobs:
       - name: checkout branch
         uses: actions/checkout@v3
 
+      - name: copy PEM
+        env:
+          PEM_STR: ${{ secrets.JWT_TOKEN_ENCRYPT_PEM }}
+        run: echo $PEM_STR | base64 --decode > ./private.pem
+
       - name: get credentials of ECS
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -38,7 +43,7 @@ jobs:
           REPOSITORY: lutergs-backend
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg ACTIVE_PROFILES=${{ secrets.ACTIVE_PROFILES }} .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
 #  build-graalvm:

@@ -14,5 +14,6 @@ FROM busybox:latest
 
 WORKDIR /
 COPY --from=builder /lutergs-backend/build/native/nativeCompile/lutergs-backend application
+COPY --from=builder /lutergs-backend/private.pem private.pem
 CMD ["/application", "-Duser.timezone=Asia/Seoul"]
 
