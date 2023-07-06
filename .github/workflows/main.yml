@@ -35,39 +35,39 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-to-ecr.outputs.registry }}
-          REPOSITORY: lutergs
+          REPOSITORY: lutergs-backend
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
-  build-graalvm:
-    runs-on: ubuntu-latest
-    steps:
-      # checkout branch
-      - name: checkout branch
-        uses: actions/checkout@v3
-
-      - name: init graalVM
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '17.0.7'
-          distribution: 'graalvm-community'
-          components: 'native-image'
-          set-java-home: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          native-image-job-reports: 'true'
-
-      - name: build native image
-        run: |
-          echo 'spring.profiles.active=server' > ./src/main/resources/application.properties
-          ./gradlew nativeCompile
-
-      - name: upload binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: lutergs-backend
-          path: ./build/native/nativeCompile/*
+#  build-graalvm:
+#    runs-on: ubuntu-latest
+#    steps:
+#      # checkout branch
+#      - name: checkout branch
+#        uses: actions/checkout@v3
+#
+#      - name: init graalVM
+#        uses: graalvm/setup-graalvm@v1
+#        with:
+#          java-version: '17.0.7'
+#          distribution: 'graalvm-community'
+#          components: 'native-image'
+#          set-java-home: true
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          native-image-job-reports: 'true'
+#
+#      - name: build native image
+#        run: |
+#          echo 'spring.profiles.active=server' > ./src/main/resources/application.properties
+#          ./gradlew nativeCompile
+#
+#      - name: upload binary
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: lutergs-backend
+#          path: ./build/native/nativeCompile/*
 
 
 
