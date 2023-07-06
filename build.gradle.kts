@@ -38,10 +38,8 @@ dependencies {
 
     // JWT
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.75")
     // TODO : jjwt 1.0 부터는 JWE 를 사용하므로, 확인 후 변경할 것
-    // implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    // implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
-    // implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
