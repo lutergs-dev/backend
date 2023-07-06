@@ -24,7 +24,7 @@ jobs:
       - name: copy PEM
         env:
           PEM_STR: ${{ secrets.JWT_TOKEN_ENCRYPT_PEM }}
-        run: echo $PEM_STR | base64 --decode > ./private.pem
+        run: echo $PEM_STR > ./private.pem
 
       - name: get credentials of ECS
         uses: aws-actions/configure-aws-credentials@v2
