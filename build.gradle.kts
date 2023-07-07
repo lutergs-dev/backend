@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.aot.ProcessAot
 
 plugins {
     id("org.springframework.boot") version "3.0.6"
@@ -56,6 +57,10 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.withType<ProcessAot> {
+    args("--spring.profiles.active=server")
 }
 
 graalvmNative {

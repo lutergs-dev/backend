@@ -17,6 +17,6 @@ fun String.toLocalDateTime(): LocalDateTime {
 }
 
 fun LocalDateTime.toDate(offsetHour: Int): Date {
-    return this.toInstant(ZoneOffset.ofHours(9))
+    return this.toInstant(ZoneOffset.ofHours(offsetHour))
         .let { Date.from(it) }
 }
