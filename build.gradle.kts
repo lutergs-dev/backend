@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "dev.lutergs"
-version = "0.0.4"
+version = "0.0.5"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 val springBootVersion = "3.1.1"
@@ -29,6 +29,12 @@ dependencies {
 
     // mongoDB reactive
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:${springBootVersion}")
+
+    // postgres reactive
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc:${springBootVersion}")
+    implementation("org.postgresql:r2dbc-postgresql:1.0.1.RELEASE")
+    implementation("io.r2dbc:r2dbc-pool:1.0.0.RELEASE")
+    implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
 
     // MD5 hashing
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")

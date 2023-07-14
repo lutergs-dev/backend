@@ -1,30 +1,34 @@
 package dev.lutergs.lutergsbackend.service.page
 
-import dev.lutergs.lutergsbackend.utils.Hasher
+import dev.lutergs.lutergsbackend.service.user.NickName
+import java.time.LocalDateTime
+import java.util.UUID
 
-
-enum class Job {
-    CREATE, ADD_FIRST, ADD_BETWEEN, ADD_LAST, MODIFY, DELETE
-}
 
 data class Page(
-    val id: String,
-    val name: String,
-    val paragraphs: List<Paragraph>
+    val pageKey: PageKey,
+    val pageValue: PageValue
 )
 
-data class Paragraph(
-    val data: String,
-    val hash: String
+data class PageKey(
+    val id: Long?,
+    val title: String,
+    val endpoint: Endpoint,
+    val nickName: NickName,
+    val createdAt: LocalDateTime
+)
+
+data class PageValue(
+    val id: Long?,
+    val paragraphs: List<String>
+)
+
+data class Endpoint(
+    val value: String
 ) {
     companion object {
-        fun fromString(data: String): Paragraph {
-            return Paragraph(data, Hasher.hashStringToMd5(data))
+        fun create(): Endpoint {
+            return Endpoint(UUID.randomUUID().toString())
         }
     }
 }
-
-data class PageList(
-    val endpoint: String,
-    val name: String
-)

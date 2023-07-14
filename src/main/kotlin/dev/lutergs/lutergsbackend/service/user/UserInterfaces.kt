@@ -7,8 +7,11 @@ interface OAuthRequester {
 }
 
 interface UserRepository {
-    fun getUser(email: Email): Mono<User>
+    fun getUserByEmail(email: Email): Mono<User>
+    fun getUserByNickname(nickname: NickName): Mono<User>
+    fun checkUserExistsByNickName(nickName: NickName): Mono<Boolean>
     fun saveUser(user: User): Mono<User>
+    fun changeNickName(user: User): Mono<User>
 }
 
 interface TokenGenerator {

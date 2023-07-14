@@ -2,6 +2,10 @@ spring:
   data:
     mongodb:
       uri: mongodb+srv://${MONGO_USERNAME:'username'}:${MONGO_PASSWORD:'password'}@${MONGO_URL:'url'}/${MONGO_DATABASE:'db'}?retryWrites=true&w=majority
+  r2dbc:
+    url: r2dbc:pool:postgres://${POSTGRES_URL:'url'}:${POSTGRES_PORT:'port'}/${POSTGRES_DB:'db'}?schema=${POSTGRES_SCHEMA:'schema'}
+    username: ${POSTGRES_USERNAME:'username'}
+    password: ${POSTGRES_PASSWORD:'password'}
 
   cloud:
     aws:
@@ -20,19 +24,17 @@ custom:
     url:
       frontend: https://${FRONT_SERVER_DOMAIN:localhost}
       backend: https://${BACKEND_SERVER_DOMAIN:localhost}
-    domain:
-      frontend: ${FRONT_SERVER_DOMAIN:localhost}
-      backend: ${BACKEND_SERVER_DOMAIN:localhost}
+    root-domain: ${ROOT_DOMAIN:localhost}
 
   s3:
     bucket-name: ${AWS_BUCKET_NAME:'bucket-name'}
     bucket-directory-prefix: ${AWS_BUCKET_PREFIX:'bucket-prefix'}
 
   oauth:
-    redirect-uri: https://${BACKEND_SERVER_DOMAIN:localhost}/user/signup
     client-id: ${OAUTH_CLIENT_ID:'oauth-client-id'}
     client-secret: ${OAUTH_CLIENT_SECRET:'oauth-client-secret'}
 
   token:
     rsa-key-location: ${RSA_KEY_LOCATION:'./private.pem'}
     expire-hour: ${TOKEN_EXPIRE_HOUR:'2'}
+    is-secure: ${ENABLE_SECURE_TOKEN:false}

@@ -10,7 +10,5 @@ interface GuestbookRepository {
 
     fun findCommentWithPage(itemsInPage: Int, pageNumber: Int): Flux<Comment>
 
-    fun findCommentByNameAndCreatedAtAndPassword(name: String, createdAt: LocalDateTime, password: String): Mono<Comment>
-
     fun deleteComment(name: String, createdAt: LocalDateTime, password: String): Mono<Void>
 }

@@ -2,6 +2,7 @@ package dev.lutergs.lutergsbackend.repository.userInterfaceImpl
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import dev.lutergs.lutergsbackend.service.user.Email
+import dev.lutergs.lutergsbackend.service.user.NickName
 import dev.lutergs.lutergsbackend.service.user.OAuthRequester
 import dev.lutergs.lutergsbackend.service.user.User
 import org.springframework.beans.factory.annotation.Value
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
+import java.util.UUID
 
 @Component
 class OAuthRequesterImpl(
@@ -28,7 +31,6 @@ class OAuthRequesterImpl(
         .build()
 
     private fun getGoogleOauthInfo(code: String, redirectUri: String): Mono<GoogleOAuthInfo> {
-        println("user code : $code")
         return this.oauthInfoRequester
             .post()
             .body(BodyInserters
@@ -44,7 +46,6 @@ class OAuthRequesterImpl(
     }
 
     private fun getGoogleUserInfo(accessToken: String): Mono<GoogleUserInfo> {
-        println("access token : $accessToken")
         return this.userInfoRequester
             .get()
             .uri {it
@@ -59,7 +60,7 @@ class OAuthRequesterImpl(
     override fun getUserByCode(code: String, redirectionUrl: String): Mono<User> {
         return this.getGoogleOauthInfo(code, redirectionUrl)
             .flatMap { this.getGoogleUserInfo(it.accessToken) }
-            .flatMap { Mono.just(it.toUser()) }
+            .flatMap { Mono.just(it.toNewUser()) }
     }
 }
 
@@ -79,10 +80,12 @@ data class GoogleUserInfo(
     @JsonProperty("verified_email") val isVerified: Boolean,
     @JsonProperty("picture") val pictureUrl: String
 ) {
-    fun toUser(): User {
+    fun toNewUser(): User {
         return User(
+            null,
             Email.fromFullString(this.email),
-            null
+            LocalDateTime.now(),
+            NickName(UUID.randomUUID().toString())
         )
     }
 }

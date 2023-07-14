@@ -7,7 +7,7 @@ import org.springframework.web.reactive.function.server.router
 
 @Configuration
 class RouterConfiguration(
-    private val pageDataController: PageDataController,
+    private val pageController: PageController,
     private val imageController: ImageController,
     private val guestbookController: GuestbookController,
     private val userController: UserController,
@@ -17,9 +17,9 @@ class RouterConfiguration(
     fun route() = router {
         accept(MediaType.APPLICATION_JSON).nest {
             // from pageDataController
-            GET("/page/list", pageDataController::getAllPageList)
-            GET("/page/{endpoint}", pageDataController::getPageData)
-            POST("/page", pageDataController::postPageData)
+            GET("/page/list", pageController::getPageList)
+            GET("/page/{endpoint}", pageController::getPageData)
+            POST("/page", pageController::postPageData)
 
             // from imageController
             GET("/image", imageController::getPresignedImageUrl)
@@ -31,8 +31,9 @@ class RouterConfiguration(
 
             // from oauthController
             GET("/user", userController::getUser)
-            GET("/user/login", userController::login)
+            POST("/user", userController::changeUserName)
             GET("/user/signup", userController::signUp)
+            GET("/user/logout", userController::logout)
         }
     }
 }

@@ -15,6 +15,7 @@ import dev.lutergs.lutergsbackend.service.user.Email
 import dev.lutergs.lutergsbackend.service.user.TokenGenerator
 import dev.lutergs.lutergsbackend.service.user.User
 import dev.lutergs.lutergsbackend.utils.toDate
+import dev.lutergs.lutergsbackend.utils.toIsoOffsetString
 import org.springframework.beans.TypeMismatchException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
@@ -23,6 +24,7 @@ import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -59,8 +61,8 @@ class TokenGeneratorImpl(
         val now = LocalDateTime.now()
         return mapOf(
             Pair("email", user.email.toString()),
-            Pair("exp", now.plusHours(this.tokenExpireHour.toLong()).format(DateTimeFormatter.ISO_DATE)),
-            Pair("nbf", now.format(DateTimeFormatter.ISO_DATE))
+            Pair("exp", now.plusHours(this.tokenExpireHour.toLong()).toIsoOffsetString(9)),
+            Pair("nbf", now.toIsoOffsetString(9))
         )
     }
 
@@ -73,11 +75,11 @@ class TokenGeneratorImpl(
 
         val expire = map["exp"] ?: throw NotFoundException()
         if (expire !is String) throw TypeMismatchException(expire, String::class.java)
-        if (LocalDateTime.parse(expire, DateTimeFormatter.ISO_DATE) < now) throw SecurityException("token is expired")
+        if (LocalDateTime.parse(expire, DateTimeFormatter.ISO_OFFSET_DATE_TIME) < now) throw SecurityException("token is expired")
 
         val notBefore = map["nbf"] ?: throw NotFoundException()
         if (notBefore !is String) throw TypeMismatchException(notBefore, String::class.java)
-        if (LocalDateTime.parse(notBefore, DateTimeFormatter.ISO_DATE) > now) throw SecurityException("token is not activated")
+        if (LocalDateTime.parse(notBefore, DateTimeFormatter.ISO_OFFSET_DATE_TIME) > now) throw SecurityException("token is not activated")
     }
 
     private fun createJWSfromUser(user: User): JWSObject {

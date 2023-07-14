@@ -31,6 +31,7 @@ class GuestbookService(
     }
 
     fun deleteComments(deleteCommentRequest: DeleteCommentRequest): Mono<Void> {
+
         return this.guestbookRepository.deleteComment(
             name = deleteCommentRequest.name,
             createdAt = deleteCommentRequest.createdAt.toLocalDateTime(),

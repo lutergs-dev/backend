@@ -5,9 +5,17 @@ import java.time.LocalDateTime
 import java.util.regex.Pattern
 
 data class User(
-    val email: Email,
-    val createdAt: LocalDateTime?
-)
+    val id: Long?,
+    val email: Email,               // this is the primary key
+    val createdAt: LocalDateTime,
+    val nickName: NickName
+) {
+    fun updateNickName(nickName: NickName): User {
+        return User(this.id, this.email, this.createdAt, nickName)
+    }
+
+    fun isSaved() = this.id != null
+}
 
 data class Email private constructor(
     val username: String,
@@ -35,3 +43,7 @@ data class Email private constructor(
         return "${this.username}@${this.provider}"
     }
 }
+
+data class NickName(
+    val value: String
+)
