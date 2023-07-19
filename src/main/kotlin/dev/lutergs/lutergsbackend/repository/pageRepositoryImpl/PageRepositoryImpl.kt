@@ -26,7 +26,7 @@ class PageRepositoryImpl(
     }
 
     override fun getPageKeyList(pageIndex: Int, pageSize: Int): Flux<PageKey> {
-        return this.pageKeyReactiveRepository.findByOrderByCreatedAtDesc(Pageable.ofSize(pageSize).withPage(pageIndex))
+        return this.pageKeyReactiveRepository.findByOrderByIdDesc(Pageable.ofSize(pageSize).withPage(pageIndex))
             .flatMap { this.toPageKey(it) }
     }
 

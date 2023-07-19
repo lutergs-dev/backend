@@ -75,10 +75,7 @@ class UserRepositoryImpl(
     override fun changeNickName(user: User): Mono<User> {
         return this.userEntityReactiveRepository
             .findDistinctFirstByEmail(user.email.toString())
-            .flatMap {
-                it.nickName = user.nickName.value
-                Mono.just(it)
-            }
+            .flatMap { Mono.just(it.apply { this.nickName = user.nickName.value }) }
             .flatMap { this.userEntityReactiveRepository.save(it) }
             .flatMap { Mono.just(it.toUser()) }
     }

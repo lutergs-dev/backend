@@ -11,6 +11,11 @@ class ImageController(
     private val imageService: ImageService
 ) {
 
+    fun test(request: ServerRequest): Mono<ServerResponse> {
+        // TODO : 추후 이미지를 백엔드에서 검증
+        return ServerResponse.ok().build()
+    }
+
     fun getPresignedImageUrl(request: ServerRequest): Mono<ServerResponse> {
         return runCatching {
             request.queryParam("name")

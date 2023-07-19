@@ -57,7 +57,7 @@ class PageValueEntity {
 
 @Repository
 interface PageKeyReactiveRepository: ReactiveCrudRepository<PageKeyEntity, Long> {
-    fun findByOrderByCreatedAtDesc(pageable: Pageable): Flux<PageKeyEntity>
+    fun findByOrderByIdDesc(pageable: Pageable): Flux<PageKeyEntity>
     fun findByUserId(userId: Long): Flux<PageKeyEntity>
     fun findByEndpoint(endpoint: String): Mono<PageKeyEntity>
 }

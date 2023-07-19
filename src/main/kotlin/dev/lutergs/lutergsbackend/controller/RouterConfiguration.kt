@@ -23,6 +23,7 @@ class RouterConfiguration(
 
             // from imageController
             GET("/image", imageController::getPresignedImageUrl)
+            GET("/image2", imageController::test)
 
             // from guestbookController
             GET("/guestbook", guestbookController::getComments)

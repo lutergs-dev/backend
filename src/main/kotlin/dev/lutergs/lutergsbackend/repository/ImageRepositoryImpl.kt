@@ -6,6 +6,7 @@ import io.awspring.cloud.s3.S3Template
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.s3.model.*
+import java.io.InputStream
 import java.time.Duration
 
 @Component
