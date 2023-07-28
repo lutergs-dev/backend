@@ -99,24 +99,47 @@ jobs:
           echo "APP_VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')" >> $GITHUB_ENV
           echo "CURRENT_DATE=$(date +%s)" >> $GITHUB_ENV
 
-      - name: copy JAR to remote and run
-        run: |
-          echo ${{ secrets.SERVER_1_SSH_KEY }} > server1.key
-          echo ${{ secrets.SERVER_2_SSH_KEY }} > server2.key
-          ssh -i server1.key ${{ secrets.SERVER_1_USERNAME }}@${{ secrets.SERVER_1_IP }} mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-bak-$CURRENT_DATE.jar
-          scp -i server1.key build/libs/lutergs-backend-$APP_VERSION.jar ${{ secrets.SERVER_1_USERNAME }}@${{ secrets.SERVER_1_IP }}:~/lutergs-backend/app.jar
-          ssh -i server2.key ${{ secrets.SERVER_2_USERNAME }}@${{ secrets.SERVER_2_IP }} mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-bak-$CURRENT_DATE.jar
-          scp -i server2.key build/libs/lutergs-backend-$APP_VERSION.jar ${{ secrets.SERVER_2_USERNAME }}@${{ secrets.SERVER_2_IP }}:~/lutergs-backend/app.jar
-          ssh -i server1.key ${{ secrets.SERVER_1_USERNAME }}@${{ secrets.SERVER_1_IP }} sudo systemctl restart lutergs-backend
-          ssh -i server2.key ${{ secrets.SERVER_2_USERNAME }}@${{ secrets.SERVER_2_IP }} sudo systemctl restart lutergs-backend
+      - name: move JAR to server 1
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_1_IP }}
+          username: ${{ secrets.SERVER_1_USERNAME }}
+          key: ${{ secrets.SERVER_1_SSH_KEY }}
+          port: 22
+          source: "build/libs/lutergs-backend-$APP_VERSION.jar"
+          target: ~/lutergs-backend/app-$CURRENT_DATE.jar
 
-      - name: remove persistence
-        run: |
-          rm server1.key
-          rm server2.key
+      - name: move JAR to server 2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_2_IP }}
+          username: ${{ secrets.SERVER_2_USERNAME }}
+          key: ${{ secrets.SERVER_2_SSH_KEY }}
+          port: 22
+          source: "build/libs/lutergs-backend-$APP_VERSION.jar"
+          target: ~/lutergs-backend/app-$CURRENT_DATE.jar
+
+      - name: update system daemon of server 1
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_1_IP }}
+          username: ${{ secrets.SERVER_1_USERNAME }}
+          key: ${{ secrets.SERVER_1_SSH_KEY }}
+          port: 22
+          script: |
+            mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-bak-$CURRENT_DATE.jar
+            mv ~/lutergs-backend/app-$CURRENT_DATE.jar ~/lutergs-backend/app.jar
+            sudo systemctl restart lutergs-backend
+
+      - name: update system daemon of server 2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_2_IP }}
+          username: ${{ secrets.SERVER_2_USERNAME }}
+          key: ${{ secrets.SERVER_2_SSH_KEY }}
+          port: 22
+          script: |
+            mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-bak-$CURRENT_DATE.jar
+            mv ~/lutergs-backend/app-$CURRENT_DATE.jar ~/lutergs-backend/app.jar
+            sudo systemctl restart lutergs-backend
           
-
-
-
-
-
