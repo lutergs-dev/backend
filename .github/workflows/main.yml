@@ -96,7 +96,7 @@ jobs:
       - name: Set environment Variable
         run: |
           echo "APP_VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')" >> $GITHUB_ENV
-          echo "CURRENT_DATE=$(date +%s) >> $GITHUB_ENV
+          echo "CURRENT_DATE=$(date +%s)" >> $GITHUB_ENV
 
       - name: copy JAR to remote and run
         run: |
