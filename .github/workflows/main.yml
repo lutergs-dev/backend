@@ -74,6 +74,47 @@ jobs:
           name: lutergs-backend
           path: ./build/native/nativeCompile/*
 
+  upload-server:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: checkout branch
+        uses: actions/checkout@v3
+
+      - name: setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Execute Gradle build
+        run: ./gradlew build
+
+      - name: Set environment Variable
+        run: |
+          echo "APP_VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')" >> $GITHUB_ENV
+          echo "CURRENT_DATE=$(date +%s) >> $GITHUB_ENV
+
+      - name: copy JAR to remote and run
+        run: |
+          echo ${{ secrets.SERVER_1_SSH_KEY }} > server1.key
+          echo ${{ secrets.SERVER_2_SSH_KEY }} > server2.key
+          ssh -i server1.key ${{ secrets.SERVER_1_USERNAME }}@${{ secrets.SERVER_1_IP }} mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-bak-$CURRENT_DATE.jar
+          scp -i server1.key build/libs/lutergs-backend-$APP_VERSION.jar ${{ secrets.SERVER_1_USERNAME }}@${{ secrets.SERVER_1_IP }}:~/lutergs-backend/app.jar
+          ssh -i server2.key ${{ secrets.SERVER_2_USERNAME }}@${{ secrets.SERVER_2_IP }} mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-bak-$CURRENT_DATE.jar
+          scp -i server2.key build/libs/lutergs-backend-$APP_VERSION.jar ${{ secrets.SERVER_2_USERNAME }}@${{ secrets.SERVER_2_IP }}:~/lutergs-backend/app.jar
+          ssh -i server1.key ${{ secrets.SERVER_1_USERNAME }}@${{ secrets.SERVER_1_IP }} sudo systemctl restart lutergs-backend
+          ssh -i server2.key ${{ secrets.SERVER_2_USERNAME }}@${{ secrets.SERVER_2_IP }} sudo systemctl restart lutergs-backend
+
+      - name: remove persistence
+        run: |
+          rm server1.key
+          rm server2.key
+          
+
 
 
 

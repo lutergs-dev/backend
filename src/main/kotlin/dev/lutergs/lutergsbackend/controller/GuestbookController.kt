@@ -51,7 +51,7 @@ class GuestbookController(
         }.getOrElse {
             ServerResponse.badRequest()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(it.toString(), String::class.java)
+                .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
         }
     }
 
