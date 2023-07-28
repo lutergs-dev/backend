@@ -76,6 +76,7 @@ jobs:
 
   upload-server:
     runs-on: ubuntu-latest
+    environment: main
     steps:
 
       - name: checkout branch
