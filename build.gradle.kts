@@ -50,6 +50,10 @@ dependencies {
     implementation("org.bouncycastle:bcpkix-jdk18on:1.75")
     // TODO : jjwt 1.0 부터는 JWE 를 사용하므로, 확인 후 변경할 것
 
+    // Web-push
+    implementation("nl.martijndwars:web-push:5.1.1")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
 }

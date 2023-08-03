@@ -38,3 +38,7 @@ custom:
     rsa-key-location: ${RSA_KEY_LOCATION:'./private.pem'}
     expire-hour: ${TOKEN_EXPIRE_HOUR:'2'}
     is-secure: ${ENABLE_SECURE_TOKEN:false}
+
+  push:
+    public-key: ${PUSH_PUBLIC_KEY}
+    private-key: ${PUSH_PRIVATE_KEY}

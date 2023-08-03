@@ -11,6 +11,7 @@ class RouterConfiguration(
     private val imageController: ImageController,
     private val guestbookController: GuestbookController,
     private val userController: UserController,
+    private val pushMessageController: PushMessageController
 ) {
 
     @Bean
@@ -35,6 +36,12 @@ class RouterConfiguration(
             POST("/user", userController::changeUserName)
             GET("/user/signup", userController::signUp)
             GET("/user/logout", userController::logout)
+
+            // from pushMessageController
+            POST("/push/subscription", pushMessageController::saveSubscription)
+            POST("/push/topic", pushMessageController::saveTopic)
+            GET("/push/topic", pushMessageController::getTopics)
+            POST("/push/topic/trigger", pushMessageController::triggerTopic)
         }
     }
 }
