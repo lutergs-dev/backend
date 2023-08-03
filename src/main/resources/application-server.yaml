@@ -23,6 +23,7 @@ custom:
   server:
     url:
       frontend: https://${FRONT_SERVER_DOMAIN:localhost}
+      frontend-app: https://${FRONT_APP_DOMAIN}
       backend: https://${BACKEND_SERVER_DOMAIN:localhost}
     root-domain: ${ROOT_DOMAIN:localhost}
 
