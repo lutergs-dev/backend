@@ -1,6 +1,6 @@
 package dev.lutergs.lutergsbackend.service.pushnotification
 
-import org.asynchttpclient.Response
+import dev.lutergs.lutergsbackend.repository.pushRepositoryImpl.Response
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
@@ -9,5 +9,5 @@ interface PushRepository {
     fun getTopics(): Flux<Topic>
     fun saveNewTopic(topic: Topic): Mono<Topic>
     fun findTopicByUUID(topicUUID: String): Mono<Topic>
-    fun sendTopicMessage(topic: Topic, message: String): Mono<List<Int>>
+    fun sendTopicMessage(topic: Topic, message: String): Flux<Response>
 }

@@ -56,11 +56,12 @@ class PushMessageController(
 
     fun triggerTopic(request: ServerRequest): Mono<ServerResponse> {
         return request.bodyToMono(TriggerTopicRequest::class.java)
-            .flatMap {
+            .flatMapMany {
                 this.pushService.triggerTopic(it) }
-            .flatMap { ServerResponse.ok()
+            .let {
+                ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(it)) }
+                .body(it) }
             .onErrorResume {
                 ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))

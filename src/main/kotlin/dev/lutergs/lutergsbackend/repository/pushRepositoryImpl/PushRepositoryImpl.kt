@@ -5,7 +5,7 @@ import dev.lutergs.lutergsbackend.service.pushnotification.Subscription
 import dev.lutergs.lutergsbackend.service.pushnotification.Topic
 import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushAsyncService
-import org.asynchttpclient.Response
+import org.asynchttpclient.Response as AsyncResponse
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -19,7 +19,8 @@ import java.security.Security
 class PushRepositoryImpl(
     private val pushEntityRepository: PushEntityRepository,
     @Value("\${custom.push.public-key}") publicKey: String,
-    @Value("\${custom.push.private-key}") privateKey: String
+    @Value("\${custom.push.private-key}") privateKey: String,
+    @Value("\${custom.server.url.frontend-app}") frontendAppUrl: String
 ): PushRepository {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -29,7 +30,7 @@ class PushRepositoryImpl(
         }
     }
 
-    private val pushAsyncService = PushAsyncService(publicKey, privateKey)
+    private val pushAsyncService = PushAsyncService(publicKey, privateKey, frontendAppUrl)
 
     override fun saveNewSubscription(subscription: Subscription): Mono<Subscription> {
         return this.pushEntityRepository.saveNotRelatedSubscription(subscription)
@@ -49,17 +50,23 @@ class PushRepositoryImpl(
         return this.pushEntityRepository.findTopicByUUID(topicUUID)
     }
 
-    override fun sendTopicMessage(topic: Topic, message: String): Mono<List<Int>> {
+    override fun sendTopicMessage(topic: Topic, message: String): Flux<Response> {
         return topic.subscriptions
             ?.map { PushSubscriptionEntity.fromPushSubscription(it) }
             ?.map {
-                Notification(
-                    it.endpoint,
-                    it.getUserPublicKey(),
-                    it.getAuthAsBytes(),
-                    message.toByteArray()
-                ) }
-            ?.map { notification ->
+                Pair(
+                    Notification(
+                        it.endpoint,
+                        it.getUserPublicKey(),
+                        it.getAuthAsBytes(),
+                        message.toByteArray()
+                    ),
+                    it.auth
+                )
+                 }
+            ?.map { pair ->
+                val notification = pair.first
+                val auth = pair.second
                 Mono.fromFuture(this.pushAsyncService.send(notification))
                     .flatMap { response ->
                         this.logger.info("data : ${response.responseBody}")
@@ -67,13 +74,24 @@ class PushRepositoryImpl(
                             this.pushEntityRepository.findSubscriptionByEndpoint(notification.endpoint)
                                 .flatMap { this.pushEntityRepository.deleteSubscriptionEntity(it)
                                     .collectList()
-                                    .then(Mono.just(response.statusCode))
+                                    .then(Mono.just(Response.fromResponseAndEndpoint(response, auth)))
                                 }
-                        } else { Mono.just(response.statusCode) }
+                        } else { Mono.just(Response.fromResponseAndEndpoint(response, auth)) }
                     }
             }
             ?.let { Flux.concat(it) }
-            ?.collectList()
             ?: throw IllegalStateException("NOT valid subscription!")
+    }
+}
+
+data class Response(
+    val auth: String,
+    val responseCode: Int,
+    val responseBody: String
+) {
+    companion object {
+        fun fromResponseAndEndpoint(response: AsyncResponse, endpoint: String): Response {
+            return Response(endpoint, response.statusCode, response.responseBody)
+        }
     }
 }
