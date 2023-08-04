@@ -69,7 +69,7 @@ class PushRepositoryImpl(
                     }
             }
             ?.let { Flux.concat(it) }
-            ?.collectList()
+            ?.collectList()?.log()
             ?: throw IllegalStateException("NOT valid subscription!")
     }
 }
