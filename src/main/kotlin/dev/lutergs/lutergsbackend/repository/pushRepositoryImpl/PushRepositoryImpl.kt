@@ -7,6 +7,7 @@ import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushAsyncService
 import org.asynchttpclient.Response
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -20,6 +21,8 @@ class PushRepositoryImpl(
     @Value("\${custom.push.public-key}") publicKey: String,
     @Value("\${custom.push.private-key}") privateKey: String
 ): PushRepository {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
     init {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(BouncyCastleProvider());
@@ -59,6 +62,7 @@ class PushRepositoryImpl(
             ?.map { notification ->
                 Mono.fromFuture(this.pushAsyncService.send(notification))
                     .flatMap { response ->
+                        this.logger.info("data : ${response.responseBody}")
                         if (response.statusCode == 410) {
                             this.pushEntityRepository.findSubscriptionByEndpoint(notification.endpoint)
                                 .flatMap { this.pushEntityRepository.deleteSubscriptionEntity(it)
@@ -69,7 +73,7 @@ class PushRepositoryImpl(
                     }
             }
             ?.let { Flux.concat(it) }
-            ?.collectList()?.log()
+            ?.collectList()
             ?: throw IllegalStateException("NOT valid subscription!")
     }
 }
