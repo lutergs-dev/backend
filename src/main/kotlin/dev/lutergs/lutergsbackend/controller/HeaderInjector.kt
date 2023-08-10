@@ -46,10 +46,6 @@ class CustomWebFilter(
     private val allowList = listOf(frontendServerUrl, frontendAppUrl)
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
-        exchange.request.headers.origin?.let {
-            println("origin is : $it, allowlist is $allowList")
-        }
-
         return exchange.request.headers.origin
             ?.let {
                 if (allowList.contains(it)) {
