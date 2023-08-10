@@ -43,3 +43,8 @@ custom:
   push:
     public-key: ${PUSH_PUBLIC_KEY}
     private-key: ${PUSH_PRIVATE_KEY}
+    topic-trigger-key: ${PUSH_TOPIC_TRIGGER_KEY}
+    new-topic:
+      request-url: ${PUSH_NEW_TOPIC_REQUEST_URL}
+      username: ${PUSH_NEW_TOPIC_USERNAME}
+      password: ${PUSH_NEW_TOPIC_PASSWORD}

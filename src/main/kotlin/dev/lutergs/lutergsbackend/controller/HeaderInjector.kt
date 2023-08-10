@@ -52,7 +52,7 @@ class CustomWebFilter(
                     exchange.response.headers
                         .apply {
                             this.add("Access-Control-Allow-Origin", it)
-                            this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+                            this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
                             this.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
                             this.add("Access-Control-Allow-Credentials", "true")
                         }

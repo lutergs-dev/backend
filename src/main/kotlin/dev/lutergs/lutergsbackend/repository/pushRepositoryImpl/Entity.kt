@@ -23,6 +23,17 @@ class SubscriptionEntity {
         return Subscription(this.auth, this.key, this.endpoint, null)
     }
 
+    fun toRelatedSubscription(topicEntities: List<TopicEntity>): Subscription {
+        return Subscription(this.auth, this.key, this.endpoint, topicEntities.map { it.toNotRelatedTopic() })
+    }
+
+    fun toRelatedSubscription(topicEntities: Flux<TopicEntity>): Mono<Subscription> {
+        return topicEntities.flatMap { Mono.just(it.toNotRelatedTopic()) }
+            .collectList()
+            .defaultIfEmpty(listOf())
+            .flatMap { Mono.just(Subscription(this.auth, this.key, this.endpoint, it)) }
+    }
+
     companion object {
         fun fromNotRelatedSubscription(subscription: Subscription): SubscriptionEntity {
             return SubscriptionEntity().apply {
@@ -45,6 +56,16 @@ class TopicEntity {
         return Topic(this.uuid, this.name, this.descroption, null)
     }
 
+    fun toRelatedTopic(subscriptionEntities: List<SubscriptionEntity>): Topic {
+        return Topic(this.uuid, this.name, this.descroption, subscriptionEntities.map { it.toNotRelatedSubscription() })
+    }
+
+    fun toRelatedTopic(subscriptionEntities: Flux<SubscriptionEntity>): Mono<Topic> {
+        return subscriptionEntities.flatMap { Mono.just(it.toNotRelatedSubscription()) }
+            .collectList()
+            .flatMap { Mono.just(Topic(this.uuid, this.name, this.descroption, it)) }
+    }
+
     companion object {
         fun fromNotRelatedTopic(topic: Topic): TopicEntity {
             return TopicEntity().apply {
@@ -53,6 +74,7 @@ class TopicEntity {
                 this.descroption = topic.description
             }
         }
+
     }
 }
 
@@ -67,6 +89,7 @@ class TopicSubscriptionListEntity {
 @Repository
 interface SubscriptionEntityRepository: ReactiveCrudRepository<SubscriptionEntity, Long> {
     fun findDistinctFirstByEndpoint(endpoint: String): Mono<SubscriptionEntity>
+    fun findDistinctFirstByAuth(auth: String): Mono<SubscriptionEntity>
 }
 
 @Repository
@@ -78,6 +101,7 @@ interface TopicEntityRepository: ReactiveCrudRepository<TopicEntity, Long> {
 interface TopicSubscriptionListEntityRepository: ReactiveCrudRepository<TopicSubscriptionListEntity, Long> {
     fun findAllBySubscriptionId(subscriptionId: Long): Flux<TopicSubscriptionListEntity>
     fun findAllByTopicId(topicId: Long): Flux<TopicSubscriptionListEntity>
+    fun findDistinctFirstBySubscriptionIdAndTopicId(subscriptionId: Long, topicId: Long): Mono<TopicSubscriptionListEntity>
 }
 
 
@@ -87,54 +111,12 @@ class PushEntityRepository(
     private val topicEntityRepository: TopicEntityRepository,
     private val topicSubscriptionListEntityRepository: TopicSubscriptionListEntityRepository
 ) {
-
-    @Transactional
-    fun toSubscription(subscriptionEntity: SubscriptionEntity): Mono<Subscription> {
-        return this.topicSubscriptionListEntityRepository
-            .findAllBySubscriptionId(subscriptionEntity.id!!)
-            .flatMap { this.topicEntityRepository.findById(it.topicId) }
-            .collectList()
-            .flatMap { topicList ->
-                Mono.just(Subscription(
-                    subscriptionEntity.auth,
-                    subscriptionEntity.key,
-                    subscriptionEntity.endpoint,
-                    topicList.map { it.toNotRelatedTopic() }
-                ))
-            }
+    fun saveNotRelatedSubscription(subscriptionEntity: SubscriptionEntity): Mono<SubscriptionEntity> {
+        return this.subscriptionEntityRepository.save(subscriptionEntity)
     }
 
-    @Transactional
-    fun toTopic(topicEntity: TopicEntity): Mono<Topic> {
-        return this.topicSubscriptionListEntityRepository
-            .findAllByTopicId(topicEntity.id!!)
-            .flatMap { this.subscriptionEntityRepository.findById(it.subscriptionId) }
-            .collectList()
-            .flatMap { subscriptionList ->
-                Mono.just(Topic(
-                    topicEntity.uuid,
-                    topicEntity.name,
-                    topicEntity.descroption,
-                    subscriptionList.map { it.toNotRelatedSubscription() }
-                ))
-            }
-    }
-
-    @Transactional
-    fun saveNotRelatedSubscription(subscription: Subscription): Mono<SubscriptionEntity> {
-        return SubscriptionEntity.fromNotRelatedSubscription(subscription)
-            .let {
-                println(it.key)
-                println(it.auth)
-                println(it.endpoint)
-
-                this.subscriptionEntityRepository.save(it)
-            }
-    }
-
-    fun getTopics(): Flux<Topic> {
+    fun getTopics(): Flux<TopicEntity> {
         return this.topicEntityRepository.findAll()
-            .flatMap { Mono.just(it.toNotRelatedTopic()) }
     }
 
     fun saveNotRelatedTopic(topic: Topic): Mono<TopicEntity> {
@@ -142,13 +124,22 @@ class PushEntityRepository(
             .let { this.topicEntityRepository.save(it) }
     }
 
-    fun findTopicByUUID(uuid: String): Mono<Topic> {
+    fun findNotRelatedTopicByUUID(uuid: String): Mono<TopicEntity> {
         return this.topicEntityRepository.findDistinctFirstByUuid(uuid)
-            .flatMap { this.toTopic(it) }
     }
 
-    fun findSubscriptionByEndpoint(endpoint: String): Mono<SubscriptionEntity> {
-        return this.subscriptionEntityRepository.findDistinctFirstByEndpoint(endpoint)
+    @Transactional
+    fun getRelatedSubscriptions(topicEntity: TopicEntity): Flux<SubscriptionEntity> {
+        return this.topicSubscriptionListEntityRepository
+            .findAllByTopicId(topicEntity.id!!)
+            .flatMap { this.subscriptionEntityRepository.findById(it.subscriptionId) }
+    }
+
+    @Transactional
+    fun getSubscribedTopics(subscriptionEntity: SubscriptionEntity): Flux<TopicEntity> {
+        return this.topicSubscriptionListEntityRepository
+            .findAllBySubscriptionId(subscriptionEntity.id!!)
+            .flatMap { this.topicEntityRepository.findById(it.topicId) }
     }
 
     @Transactional
@@ -156,6 +147,33 @@ class PushEntityRepository(
         return this.topicSubscriptionListEntityRepository.findAllBySubscriptionId(subscriptionEntity.id!!)
             .flatMap { this.topicSubscriptionListEntityRepository.delete(it) }
             .flatMap { this.subscriptionEntityRepository.delete(subscriptionEntity) }
+    }
+
+    fun findSubscriptionEntityByAuth(auth: String): Mono<SubscriptionEntity> {
+        return this.subscriptionEntityRepository.findDistinctFirstByAuth(auth)
+    }
+
+    fun pairSubscriptionAndTopic(subscriptionEntity: SubscriptionEntity, topicEntity: TopicEntity): Mono<TopicSubscriptionListEntity> {
+        if (subscriptionEntity.id == null || topicEntity.id == null) throw IllegalStateException("영속성 조회가 되지 않았습니다.")
+        return TopicSubscriptionListEntity()
+            .apply {
+                this.subscriptionId = subscriptionEntity.id!!
+                this.topicId = topicEntity.id!!
+            }.let {
+                this.topicSubscriptionListEntityRepository.save(it)
+            }
+    }
+
+    fun unPairSubscriptionAndTopic(topicSubscriptionListEntity: TopicSubscriptionListEntity): Mono<Void> {
+        if (topicSubscriptionListEntity.id == null) throw IllegalStateException("영속성 조회가 되지 않았습니다.")
+        return this.topicSubscriptionListEntityRepository.delete(topicSubscriptionListEntity)
+    }
+
+    fun findTopicSubscriptionList(subscriptionEntity: SubscriptionEntity, topicEntity: TopicEntity): Mono<TopicSubscriptionListEntity> {
+        if (subscriptionEntity.id == null || topicEntity.id == null) throw IllegalStateException("영속성 조회가 되지 않았습니다.")
+        return this.topicSubscriptionListEntityRepository.findDistinctFirstBySubscriptionIdAndTopicId(
+            subscriptionEntity.id!!, topicEntity.id!!
+        )
     }
 }
 

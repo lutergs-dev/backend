@@ -41,7 +41,11 @@ class RouterConfiguration(
             POST("/push/subscription", pushMessageController::saveSubscription)
             POST("/push/topic", pushMessageController::saveTopic)
             GET("/push/topic", pushMessageController::getTopics)
+            GET("/push/subscription/topic", pushMessageController::getSubscribedTopics)
+            POST("/push/subscribe", pushMessageController::subscribeToTopic)
+            POST("/push/unsubscribe", pushMessageController::unsubscribeToTopic)
             POST("/push/topic/trigger", pushMessageController::triggerTopic)
+            POST("/push/topic/request", pushMessageController::newTopicMakeRequest)
         }
     }
 }

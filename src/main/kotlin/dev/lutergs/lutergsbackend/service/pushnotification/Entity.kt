@@ -17,3 +17,9 @@ data class Topic(
     val subscriptions: List<Subscription>?
 )
 
+data class PushMessage(
+    val title: String,
+    val body: String,
+    val iconUrl: String?
+)
+
