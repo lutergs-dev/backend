@@ -27,6 +27,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
+    // jackson datatype
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
     // mongoDB reactive
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:${springBootVersion}")
 

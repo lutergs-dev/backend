@@ -2,6 +2,8 @@ package dev.lutergs.lutergsbackend.controller
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.server.ServerHttpRequest
 import org.springframework.http.server.ServerHttpResponse
@@ -38,6 +40,7 @@ fun corsWebFilter(): CorsWebFilter {
 }
 
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE)
 class CustomWebFilter(
     @Value("\${custom.server.url.frontend}") frontendServerUrl: String,
     @Value("\${custom.server.url.frontend-app}") frontendAppUrl: String
@@ -47,19 +50,19 @@ class CustomWebFilter(
 
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
         return exchange.request.headers.origin
-            ?.let {
-                if (allowList.contains(it)) {
-                    exchange.response.headers
-                        .apply {
-                            this.add("Access-Control-Allow-Origin", it)
-                            this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-                            this.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
-                            this.add("Access-Control-Allow-Credentials", "true")
-                        }
+            ?.let { origin ->
+                if (this.allowList.contains(origin)) {
+                    val mutatedRequest = exchange.request.mutate()
+                        .header("Access-Control-Allow-Origin", origin)
+                        .header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+                        .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+                        .header("Access-Control-Allow-Credentials", "true")
+                        .build()
+                    val mutatedExchange = exchange.mutate().request(mutatedRequest).build()
+                    chain.filter(mutatedExchange)
+                } else {
+                    chain.filter(exchange)
                 }
-                exchange
-            }
-            ?.let { chain.filter(it) }
-            ?: chain.filter(exchange)
+            } ?: chain.filter(exchange)
     }
 }
