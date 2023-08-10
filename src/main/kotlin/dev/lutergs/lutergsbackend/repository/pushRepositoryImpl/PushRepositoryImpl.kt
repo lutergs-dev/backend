@@ -112,15 +112,16 @@ class PushRepositoryImpl(
     override fun sendTopicMessage(topic: Topic, pushMessage: PushMessage): Flux<Response> {
         return topic.subscriptions
             ?.map { PushSubscriptionEntity.fromPushSubscription(it) }
-            ?.map {
+            ?.map { entity ->
                 Pair(
                     Notification(
-                        it.endpoint,
-                        it.getUserPublicKey(),
-                        it.getAuthAsBytes(),
-                        this.objectMapper.writeValueAsBytes(pushMessage)
+                        entity.endpoint,
+                        entity.getUserPublicKey(),
+                        entity.getAuthAsBytes(),
+                        SendPushMessage.fromTopicAndPushMessage(topic, pushMessage)
+                            .let { this.objectMapper.writeValueAsBytes(it) }
                     ),
-                    it.auth
+                    entity.auth
                 ) }
             ?.map { pair ->
                 val notification = pair.first

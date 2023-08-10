@@ -54,6 +54,7 @@ class PushService(
     }
 
     fun triggerTopic(triggerTopicRequest: TriggerTopicRequest): Flux<Response> {
+        println(triggerTopicRequest)
         return this.pushRepository.findTopicByUUID(topicUUID = triggerTopicRequest.topicUUID)
             .flatMapMany { this.pushRepository.sendTopicMessage(it, triggerTopicRequest.toPushMessage()) }
     }

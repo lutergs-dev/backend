@@ -107,8 +107,8 @@ class PushMessageController(
     fun triggerTopic(request: ServerRequest): Mono<ServerResponse> {
         return request.headers().firstHeader("Authorization")
             ?.let { it == this.topicTriggerKey }
-            ?.let {
-                if (!it) ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
+            ?.let { isAuthorized ->
+                if (!isAuthorized) ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
                     .body(Mono.just(ErrorResponse("unauthorized")))
                 else request.bodyToMono(TriggerTopicRequest::class.java)
                     .flatMapMany { this.pushService.triggerTopic(it) }

@@ -1,6 +1,8 @@
 package dev.lutergs.lutergsbackend.repository.pushRepositoryImpl
 
+import dev.lutergs.lutergsbackend.service.pushnotification.PushMessage
 import dev.lutergs.lutergsbackend.service.pushnotification.Subscription
+import dev.lutergs.lutergsbackend.service.pushnotification.Topic
 import java.security.KeyFactory
 import java.util.Base64
 
@@ -40,6 +42,24 @@ data class PushSubscriptionEntity(
                 subscription.auth,
                 subscription.key,
                 subscription.endpoint
+            )
+        }
+    }
+}
+
+data class SendPushMessage (
+    val topic: String,
+    val title: String,
+    val body: String,
+    val icon: String?       //url
+) {
+    companion object {
+        fun fromTopicAndPushMessage(topic: Topic, pushMessage: PushMessage): SendPushMessage {
+            return SendPushMessage(
+                topic = topic.name,
+                title = pushMessage.title,
+                body = pushMessage.body,
+                icon = pushMessage.iconUrl
             )
         }
     }
