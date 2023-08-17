@@ -1,4 +1,4 @@
-name: Build and upload to AWS
+name: Build and Deploy
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
+  deploy-to-aws:
     runs-on: ubuntu-latest
     environment: main
     steps:
@@ -74,7 +74,7 @@ jobs:
           name: lutergs-backend
           path: ./build/native/nativeCompile/*
 
-  upload-server:
+  deploy-to-oracle:
     runs-on: ubuntu-latest
     environment: main
     steps:

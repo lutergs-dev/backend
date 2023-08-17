@@ -166,10 +166,10 @@ class PushEntityRepository(
     }
 
     @Transactional
-    fun deleteSubscriptionEntity(subscriptionEntity: SubscriptionEntity): Flux<Void> {
+    fun deleteSubscriptionEntity(subscriptionEntity: SubscriptionEntity): Mono<Void> {
         return this.topicSubscriptionListEntityRepository.findAllBySubscriptionId(subscriptionEntity.id!!)
             .flatMap { this.topicSubscriptionListEntityRepository.delete(it) }
-            .flatMap { this.subscriptionEntityRepository.delete(subscriptionEntity) }
+            .then(this.subscriptionEntityRepository.delete(subscriptionEntity))
     }
 
     fun findSubscriptionEntityByAuth(auth: String): Mono<SubscriptionEntity> {

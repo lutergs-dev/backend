@@ -159,10 +159,11 @@ data class TriggerTopicRequest(
     val topicUUID: String,
     val title: String,
     val message: String,
+    val showTimestamp: Long,
     val imageUrl: String?
 ) {
     fun toPushMessage(): PushMessage {
-        return PushMessage(this.title, this.message, this.imageUrl)
+        return PushMessage(this.title, this.message, this.showTimestamp, this.imageUrl)
     }
 }
 

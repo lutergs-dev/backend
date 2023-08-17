@@ -142,7 +142,6 @@ class PushRepositoryImpl(
                         if (response.statusCode == 410) {
                             this.pushEntityRepository.findSubscriptionEntityByAuth(auth)
                                 .flatMap { this.pushEntityRepository.deleteSubscriptionEntity(it)
-                                    .collectList()
                                     .then(Mono.just(Response.fromResponseAndEndpoint(response, auth)))
                                 }
                         } else { Mono.just(Response.fromResponseAndEndpoint(response, auth)) }
@@ -159,7 +158,7 @@ class PushRepositoryImpl(
                     entity.endpoint,
                     entity.getUserPublicKey(),
                     entity.getAuthAsBytes(),
-                    SendPushMessage(topicName, pushMessage.title, pushMessage.body, pushMessage.iconUrl)
+                    SendPushMessage(topicName, pushMessage.title, pushMessage.body, pushMessage.showTimestamp, pushMessage.iconUrl)
                         .let { this.objectMapper.writeValueAsBytes(it) }
                 ),
                 entity.auth
@@ -172,7 +171,6 @@ class PushRepositoryImpl(
                         if (response.statusCode == 410) {
                             this.pushEntityRepository.findSubscriptionEntityByAuth(auth)
                                 .flatMap { this.pushEntityRepository.deleteSubscriptionEntity(it)
-                                    .collectList()
                                     .then(Mono.just(Response.fromResponseAndEndpoint(response, auth)))
                                 }
                         } else { Mono.just(Response.fromResponseAndEndpoint(response, auth)) }
