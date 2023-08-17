@@ -79,13 +79,12 @@ class UserController(
             ?.flatMap { ServerResponse
                 .permanentRedirect(URI.create("${this.frontServerUrl}/user"))
                 .cookie(this.createCookie(it, false))
-                .build()
-                .log()}
+                .build() }
             ?.onErrorResume {
                 ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            } ?: ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-            .body(Mono.just(ErrorResponse("Google OAuth request malformed!")))
+                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString())))) }
+            ?: ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(ErrorResponse("Google OAuth request malformed!")))
     }
 
     fun logout(request: ServerRequest): Mono<ServerResponse> {

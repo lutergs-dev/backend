@@ -5,58 +5,80 @@ import dev.lutergs.lutergsbackend.repository.pushRepositoryImpl.Response
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class PushService(
     private val pushRepository: PushRepository,
     private val newTopicMakeRequestRepository: NewTopicMakeRequestRepository
 ) {
+    fun isValidSubscription(auth: String): Mono<Boolean> {
+        return this.pushRepository.findSubscriptionByAuth(auth, false)
+            .hasElement()
+    }
 
     fun saveSubscription(subscriptionRequest: SubscriptionRequest): Mono<Subscription> {
         return subscriptionRequest.toSubscription()
             .let { this.pushRepository.saveNewSubscription(it) }
     }
 
-    fun saveTopic(topicRequest: NewTopicRequest): Mono<Topic> {
+    fun getTopics(): Flux<Topic> {
+        return this.pushRepository.getTopics()
+    }
+
+    fun getTopic(uuid: String): Mono<Topic> {
+        return this.pushRepository.findTopicByUUID(uuid, false)
+    }
+
+    fun createTopic(topicRequest: NewTopicRequest): Mono<Topic> {
         return topicRequest.toTopic()
             .let { this.pushRepository.saveNewTopic(it) }
     }
 
-    fun getTopics(): Flux<Topic> {
-        return this.pushRepository.getTopics()
-            // Not showing TEST topic
-            .filter { it.name != "testTopic" }
+    fun deleteTopic(uuid: String): Mono<Boolean> {
+        return this.pushRepository.deleteTopic(uuid)
     }
 
     fun getSubscribedTopics(auth: String): Mono<List<Topic>> {
         return this.pushRepository.findSubscriptionByAuth(auth, true)
+            .switchIfEmpty{ Mono.error(IllegalArgumentException("subscription is not valid")) }
             .flatMap { Mono.just(it.topics!!) }
     }
 
     fun subscribeToTopic(subscriptionAuth: String, topicUUID: String): Mono<Boolean> {
-        return Mono.zip(
-            this.pushRepository.findSubscriptionByAuth(subscriptionAuth, false),
-            this.pushRepository.findTopicByUUID(topicUUID)
-        ).flatMap {
-            val (subscription, topic) = Pair(it.t1, it.t2)
-            this.pushRepository.subscribeToTopic(subscription, topic)
-        }
+        return this.pushRepository.findSubscriptionByAuth(subscriptionAuth, false)
+            .switchIfEmpty { Mono.error(IllegalArgumentException("subscription is not valid")) }
+            .flatMap { subscription ->
+                this.pushRepository.findTopicByUUID(topicUUID, false)
+                    .switchIfEmpty { Mono.error(IllegalArgumentException("provided topic UUID is not valid")) }
+                    .flatMap { topic -> when(topic.type) {
+                        TopicType.FIXED -> Mono.error(IllegalArgumentException("trying to subscribe FIXED topic"))
+                        TopicType.UNSUBSCRIBABLE -> Mono.just(Pair(subscription, topic))
+                    }} }
+            .flatMap { this.pushRepository.subscribeToTopic(it.first, it.second) }
     }
 
-    fun unsubscribeToTopic(subscriptionAuth: String, topicUUID: String): Mono<Boolean> {
-        return Mono.zip(
-            this.pushRepository.findSubscriptionByAuth(subscriptionAuth, false),
-            this.pushRepository.findTopicByUUID(topicUUID)
-        ).flatMap {
-            val (subscription, topic) = Pair(it.t1, it.t2)
-            this.pushRepository.unsubscribeToTopic(subscription, topic)
-        }
+    fun unsubscribeFromTopic(subscriptionAuth: String, topicUUID: String): Mono<Boolean> {
+        return this.pushRepository.findSubscriptionByAuth(subscriptionAuth, false)
+            .switchIfEmpty { Mono.error(IllegalArgumentException("subscription is not valid")) }
+            .flatMap { subscription ->
+                this.pushRepository.findTopicByUUID(topicUUID, false)
+                    .switchIfEmpty { Mono.error(IllegalArgumentException("provided topic UUID is not valid")) }
+                    .flatMap { topic -> when(topic.type) {
+                        TopicType.FIXED -> Mono.error(IllegalArgumentException("trying to unsubscribe FIXED topic"))
+                        TopicType.UNSUBSCRIBABLE -> Mono.just(Pair(subscription, topic))
+                    }} }
+            .flatMap { this.pushRepository.unsubscribeFromTopic(it.first, it.second) }
     }
 
     fun triggerTopic(triggerTopicRequest: TriggerTopicRequest): Flux<Response> {
-        println(triggerTopicRequest)
-        return this.pushRepository.findTopicByUUID(topicUUID = triggerTopicRequest.topicUUID)
-            .flatMapMany { this.pushRepository.sendTopicMessage(it, triggerTopicRequest.toPushMessage()) }
+        val pushMessage = triggerTopicRequest.toPushMessage()
+        return this.pushRepository.findTopicByUUID(topicUUID = triggerTopicRequest.topicUUID, true)
+            .flatMapMany { topic -> when(topic.type) {
+                TopicType.FIXED -> this.pushRepository.getSubscriptions()
+                    .flatMap { this.pushRepository.sendSubscriptionMessage(it, pushMessage, topic.name) }
+                TopicType.UNSUBSCRIBABLE -> this.pushRepository.sendTopicMessage(topic, pushMessage)
+            }}
     }
 
     fun newTopicMakeRequest(newTopicMakeRequest: NewTopicMakeRequest): Mono<Boolean> {

@@ -5,14 +5,17 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface PushRepository {
+    fun getSubscriptions(): Flux<Subscription>
     fun saveNewSubscription(subscription: Subscription): Mono<Subscription>
     fun findSubscriptionByAuth(auth: String, getSubscribedTopics: Boolean): Mono<Subscription>
     fun getTopics(): Flux<Topic>
     fun saveNewTopic(topic: Topic): Mono<Topic>
-    fun findTopicByUUID(topicUUID: String): Mono<Topic>
+    fun deleteTopic(topicUUID: String): Mono<Boolean>
+    fun findTopicByUUID(topicUUID: String, getSubscribers: Boolean): Mono<Topic>
     fun subscribeToTopic(subscription: Subscription, topic: Topic): Mono<Boolean>
-    fun unsubscribeToTopic(subscription: Subscription, topic: Topic): Mono<Boolean>
+    fun unsubscribeFromTopic(subscription: Subscription, topic: Topic): Mono<Boolean>
     fun sendTopicMessage(topic: Topic, pushMessage: PushMessage): Flux<Response>
+    fun sendSubscriptionMessage(subscription: Subscription, pushMessage: PushMessage, topicName: String): Mono<Response>
 }
 
 interface NewTopicMakeRequestRepository {

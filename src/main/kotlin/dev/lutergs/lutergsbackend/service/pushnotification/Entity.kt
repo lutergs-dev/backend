@@ -14,8 +14,14 @@ data class Topic(
     val uuid: String,
     val name: String,
     val description: String,
+    val type: TopicType,
     val subscriptions: List<Subscription>?
 )
+
+enum class TopicType {
+    FIXED,           // this topic is bind to all subscription and cannot unsubscribe
+    UNSUBSCRIBABLE   // this topic can subscribe / unsubscribe
+}
 
 data class PushMessage(
     val title: String,

@@ -2,6 +2,7 @@ package dev.lutergs.lutergsbackend.repository.pushRepositoryImpl
 
 import dev.lutergs.lutergsbackend.service.pushnotification.Subscription
 import dev.lutergs.lutergsbackend.service.pushnotification.Topic
+import dev.lutergs.lutergsbackend.service.pushnotification.TopicType
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
@@ -51,19 +52,20 @@ class TopicEntity {
     @Column("uuid")         var uuid: String = ""       // TODO : need unique key
     @Column("name")         var name: String = ""
     @Column("description")  var descroption: String = ""
+    @Column("type")         var type: String = ""
 
     fun toNotRelatedTopic(): Topic {
-        return Topic(this.uuid, this.name, this.descroption, null)
+        return Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), null)
     }
 
     fun toRelatedTopic(subscriptionEntities: List<SubscriptionEntity>): Topic {
-        return Topic(this.uuid, this.name, this.descroption, subscriptionEntities.map { it.toNotRelatedSubscription() })
+        return Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), subscriptionEntities.map { it.toNotRelatedSubscription() })
     }
 
     fun toRelatedTopic(subscriptionEntities: Flux<SubscriptionEntity>): Mono<Topic> {
         return subscriptionEntities.flatMap { Mono.just(it.toNotRelatedSubscription()) }
             .collectList()
-            .flatMap { Mono.just(Topic(this.uuid, this.name, this.descroption, it)) }
+            .flatMap { Mono.just(Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), it)) }
     }
 
     companion object {
@@ -72,6 +74,7 @@ class TopicEntity {
                 this.uuid = topic.uuid
                 this.name = topic.name
                 this.descroption = topic.description
+                this.type = topic.type.toString()
             }
         }
 
@@ -111,6 +114,10 @@ class PushEntityRepository(
     private val topicEntityRepository: TopicEntityRepository,
     private val topicSubscriptionListEntityRepository: TopicSubscriptionListEntityRepository
 ) {
+    fun getSubscriptionEntities(): Flux<SubscriptionEntity> {
+        return this.subscriptionEntityRepository.findAll()
+    }
+
     fun saveNotRelatedSubscription(subscriptionEntity: SubscriptionEntity): Mono<SubscriptionEntity> {
         return this.subscriptionEntityRepository.save(subscriptionEntity)
     }
@@ -122,6 +129,21 @@ class PushEntityRepository(
     fun saveNotRelatedTopic(topic: Topic): Mono<TopicEntity> {
         return TopicEntity.fromNotRelatedTopic(topic)
             .let { this.topicEntityRepository.save(it) }
+    }
+
+    @Transactional
+    fun deleteTopic(topicEntity: TopicEntity): Flux<Void> {
+        return this.topicSubscriptionListEntityRepository
+            .findAllByTopicId(topicEntity.id!!)
+            .flatMap { tsEntity -> this.subscriptionEntityRepository
+                .findById(tsEntity.subscriptionId)
+                .flatMap {
+                    this.topicSubscriptionListEntityRepository
+                        .delete(tsEntity)
+                        .then(Mono.just(it))
+                }
+            }
+            .flatMap { this.subscriptionEntityRepository.delete(it) }
     }
 
     fun findNotRelatedTopicByUUID(uuid: String): Mono<TopicEntity> {

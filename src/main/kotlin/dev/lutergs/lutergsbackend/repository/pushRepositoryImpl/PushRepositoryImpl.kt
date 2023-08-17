@@ -37,6 +37,10 @@ class PushRepositoryImpl(
 
     private val pushAsyncService = PushAsyncService(publicKey, privateKey, frontendAppUrl)
 
+    override fun getSubscriptions(): Flux<Subscription> {
+        return this.pushEntityRepository.getSubscriptionEntities().flatMap { Mono.just(it.toNotRelatedSubscription()) }
+    }
+
     @Transactional
     override fun saveNewSubscription(subscription: Subscription): Mono<Subscription> {
         return this.pushEntityRepository.findSubscriptionEntityByAuth(subscription.auth)
@@ -73,10 +77,20 @@ class PushRepositoryImpl(
             .flatMap { Mono.just(it.toNotRelatedTopic()) }
     }
 
-    @Transactional
-    override fun findTopicByUUID(topicUUID: String): Mono<Topic> {
+    override fun deleteTopic(topicUUID: String): Mono<Boolean> {
         return this.pushEntityRepository.findNotRelatedTopicByUUID(topicUUID)
-            .flatMap { it.toRelatedTopic(this.pushEntityRepository.getRelatedSubscriptions(it)) }
+            .flatMapMany { this.pushEntityRepository.deleteTopic(it) }
+            .collectList()
+            .hasElement()
+    }
+
+    @Transactional
+    override fun findTopicByUUID(topicUUID: String, getSubscribers: Boolean): Mono<Topic> {
+        return this.pushEntityRepository.findNotRelatedTopicByUUID(topicUUID)
+            .flatMap {
+                if (getSubscribers) it.toRelatedTopic(this.pushEntityRepository.getRelatedSubscriptions(it))
+                else Mono.just(it.toNotRelatedTopic())
+            }
     }
 
     override fun subscribeToTopic(subscription: Subscription, topic: Topic): Mono<Boolean> {
@@ -96,7 +110,7 @@ class PushRepositoryImpl(
         }
     }
 
-    override fun unsubscribeToTopic(subscription: Subscription, topic: Topic): Mono<Boolean> {
+    override fun unsubscribeFromTopic(subscription: Subscription, topic: Topic): Mono<Boolean> {
         return Mono.zip(
             this.pushEntityRepository.findSubscriptionEntityByAuth(subscription.auth),
             this.pushEntityRepository.findNotRelatedTopicByUUID(topic.uuid)
@@ -139,6 +153,33 @@ class PushRepositoryImpl(
             }
             ?.let { Flux.concat(it) }
             ?: throw IllegalStateException("NOT valid subscription!")
+    }
+
+    override fun sendSubscriptionMessage(subscription: Subscription, pushMessage: PushMessage, topicName: String): Mono<Response> {
+        return PushSubscriptionEntity.fromPushSubscription(subscription)
+            .let { entity -> Pair(
+                Notification(
+                    entity.endpoint,
+                    entity.getUserPublicKey(),
+                    entity.getAuthAsBytes(),
+                    SendPushMessage(topicName, pushMessage.title, pushMessage.body, pushMessage.iconUrl)
+                        .let { this.objectMapper.writeValueAsBytes(it) }
+                ),
+                entity.auth
+            ) }
+            .let { pair ->
+                val notification = pair.first
+                val auth = pair.second
+                Mono.fromFuture(this.pushAsyncService.send(notification))
+                    .flatMap { response ->
+                        if (response.statusCode == 410) {
+                            this.pushEntityRepository.findSubscriptionEntityByAuth(auth)
+                                .flatMap { this.pushEntityRepository.deleteSubscriptionEntity(it)
+                                    .collectList()
+                                    .then(Mono.just(Response.fromResponseAndEndpoint(response, auth)))
+                                }
+                        } else { Mono.just(Response.fromResponseAndEndpoint(response, auth)) }
+                    } }
     }
 }
 

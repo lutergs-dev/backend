@@ -1,19 +1,13 @@
 package dev.lutergs.lutergsbackend.controller
 
-import dev.lutergs.lutergsbackend.service.pushnotification.PushMessage
-import dev.lutergs.lutergsbackend.service.pushnotification.PushService
-import dev.lutergs.lutergsbackend.service.pushnotification.Subscription
-import dev.lutergs.lutergsbackend.service.pushnotification.Topic
-import dev.lutergs.lutergsbackend.utils.orElse
+import dev.lutergs.lutergsbackend.service.pushnotification.*
+import dev.lutergs.lutergsbackend.utils.ServerResponseUtil
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatusCode
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.body
+import org.springframework.web.reactive.function.server.queryParamOrNull
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.zip
 import java.util.UUID
 
 @Component
@@ -21,121 +15,125 @@ class PushMessageController(
     private val pushService: PushService,
     @Value("\${custom.push.topic-trigger-key}") private val topicTriggerKey: String
 ) {
+// about subscription
+    fun isValidSubscription(request: ServerRequest): Mono<ServerResponse> {
+        return request.queryParamOrNull("auth")
+            ?.let { this.pushService.isValidSubscription(it) }
+            ?.flatMap {
+                if (it == true) ServerResponseUtil.okResponse("{\"isValid\":\"${it}\"}}")
+                else ServerResponseUtil.errorResponse("{\"isValid\":\"${it}\"}}", 404) }
+            ?: ServerResponseUtil.errorResponse("no provided auth")
+    }
+
     fun saveSubscription(request: ServerRequest): Mono<ServerResponse> {
         return request.bodyToMono(SubscriptionRequest::class.java)
-            .flatMap {
-                this.pushService.saveSubscription(it) }
-            .flatMap { ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(it)) }
-            .onErrorResume {
-                println(it)
-                ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
-    }
-
-    fun saveTopic(request: ServerRequest): Mono<ServerResponse> {
-        return request.headers().firstHeader("Authorization")
-            ?.let { it == this.topicTriggerKey }
-            ?.let { isAuthorized ->
-                if (!isAuthorized) ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse("unauthorized")))
-                else request.bodyToMono(NewTopicRequest::class.java)
-                    .flatMap { this.pushService.saveTopic(it) }
-                    .flatMap { ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(Mono.just(it)) }
-                    .onErrorResume { ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                        .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString())))) } }
-            ?: ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse("no given auth")))
-    }
-
-    fun getTopics(request: ServerRequest): Mono<ServerResponse> {
-        return this.pushService.getTopics().collectList()
-            .flatMap { ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(it)) }
-            .onErrorResume {
-                ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
+            .flatMap { this.pushService.saveSubscription(it) }
+            .flatMap { ServerResponseUtil.okResponse(it) }
+            .onErrorResume { ServerResponseUtil.errorResponse(it) }
     }
 
     fun getSubscribedTopics(request: ServerRequest): Mono<ServerResponse> {
         return request.headers().firstHeader("Authorization")
             ?.let { this.pushService.getSubscribedTopics(it) }
-            ?.flatMap { ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(it))
-            }
-            ?.onErrorResume {
-                ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
-            ?: ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse("no given auth")))
+            ?.flatMap { ServerResponseUtil.okResponse(it) }
+            ?.onErrorResume { ServerResponseUtil.errorResponse(it) }
+            ?: ServerResponseUtil.errorResponse("no given auth", 401)
     }
 
     fun subscribeToTopic(request: ServerRequest): Mono<ServerResponse> {
         return request.headers().firstHeader("Authorization")
             ?.let { Mono.zip(Mono.just(it), request.bodyToMono(TopicRequest::class.java) ) }
-            ?.flatMapMany { this.pushService.subscribeToTopic(it.t1, it.t2.topicUUID) }
-            ?.let { ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(it)
-            }
-            ?.onErrorResume { ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString())))) }
-            ?: ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse("no given auth")))
+            ?.flatMap { authAndTopicRequest ->
+                this.pushService.subscribeToTopic(authAndTopicRequest.t1, authAndTopicRequest.t2.topicUUID)
+                    .flatMap { ServerResponseUtil.okResponse(it) }
+                    .onErrorResume { ServerResponseUtil.errorResponse(it) } }
+            ?: ServerResponseUtil.errorResponse("no given auth", 401)
     }
 
-    fun unsubscribeToTopic(request: ServerRequest): Mono<ServerResponse> {
-        return request.headers().firstHeader("Authorization")
-            ?.let { Mono.zip(Mono.just(it), request.bodyToMono(TopicRequest::class.java) ) }
-            ?.flatMapMany { this.pushService.unsubscribeToTopic(it.t1, it.t2.topicUUID) }
-            ?.let { ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(it)
+    fun unsubscribeFromTopic(request: ServerRequest): Mono<ServerResponse> {
+        return Pair(
+            request.headers().firstHeader("Authorization"),
+            request.queryParamOrNull("uuid")
+        ).let { pair ->
+            when {
+                pair.first == null && pair.second == null -> ServerResponseUtil.errorResponse("no auth and topic UUID provided", 401)
+                pair.first == null && pair.second != null -> ServerResponseUtil.errorResponse("no auth provided", 401)
+                pair.first != null && pair.second == null -> ServerResponseUtil.errorResponse("no topic UUID provided")
+                else -> this.pushService.unsubscribeFromTopic(pair.first!!, pair.second!!)
+                    .flatMap { isUnsubscribed ->
+                        if (isUnsubscribed) ServerResponseUtil.okResponse(isUnsubscribed)
+                        else ServerResponseUtil.errorResponse("fail unsubscribed") }
+                    .onErrorResume { ServerResponseUtil.errorResponse(it) }
             }
-            ?.onErrorResume { ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString())))) }
-            ?: ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse("no given auth")))
+        }
+    }
+
+// about topics
+    fun getTopics(request: ServerRequest): Mono<ServerResponse> {
+        return this.pushService.getTopics().collectList()
+            .flatMap { ServerResponseUtil.okResponse(it) }
+            .onErrorResume { ServerResponseUtil.errorResponse(it) }
+    }
+
+    fun getTopic(request: ServerRequest): Mono<ServerResponse> {
+        return request.headers().firstHeader("Authorization")
+            ?.let { it == this.topicTriggerKey }
+            ?.let { isAuthorized ->
+                if (isAuthorized) request.queryParamOrNull("uuid")
+                    ?.let { this.pushService.getTopic(it) }
+                    ?.flatMap { ServerResponseUtil.okResponse(it) }
+                    ?.onErrorResume { ServerResponseUtil.errorResponse(it) }
+                    ?: ServerResponseUtil.errorResponse("no UUID provided")
+                else ServerResponseUtil.errorResponse("no valid auth", 401) }
+            ?: ServerResponseUtil.errorResponse("no auth provided", 401)
+    }
+
+    fun createTopic(request: ServerRequest): Mono<ServerResponse> {
+        return request.headers().firstHeader("Authorization")
+            ?.let { it == this.topicTriggerKey }
+            ?.let { isAuthorized ->
+                if (!isAuthorized) ServerResponseUtil.errorResponse("unauthorized", 401)
+                else request.bodyToMono(NewTopicRequest::class.java)
+                    .flatMap { this.pushService.createTopic(it) }
+                    .flatMap { ServerResponseUtil.okResponse(it) }
+                    .onErrorResume { ServerResponseUtil.errorResponse(it) } }
+            ?: ServerResponseUtil.errorResponse("no given auth", 401)
+    }
+
+    fun deleteTopic(request: ServerRequest): Mono<ServerResponse> {
+        return request.headers().firstHeader("Authorization")
+            ?.let { it == this.topicTriggerKey }
+            ?.let { isAuthorized ->
+                if (isAuthorized) request.queryParamOrNull("uuid")
+                    ?.let { this.pushService.deleteTopic(it) }
+                    ?.flatMap { ServerResponseUtil.okResponse(it) }
+                    ?.onErrorResume {ServerResponseUtil.errorResponse(it) }
+                    ?: ServerResponseUtil.errorResponse("no uuid provided")
+                else ServerResponseUtil.errorResponse("unauthorized", 401)}
+            ?: ServerResponseUtil.errorResponse("no given auth", 401)
     }
 
     fun triggerTopic(request: ServerRequest): Mono<ServerResponse> {
         return request.headers().firstHeader("Authorization")
             ?.let { it == this.topicTriggerKey }
             ?.let { isAuthorized ->
-                if (!isAuthorized) ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse("unauthorized")))
+                if (!isAuthorized) ServerResponseUtil.errorResponse("unauthorized", 401)
                 else request.bodyToMono(TriggerTopicRequest::class.java)
                     .flatMapMany { this.pushService.triggerTopic(it) }
-                    .let { responses ->
-                        ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(responses) }
-                    .onErrorResume { err ->
-                        ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                            .body(Mono.just(ErrorResponse(err.message.orElse(err.stackTraceToString()))))
-                    } }
-            ?: ServerResponse.status(401).contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(ErrorResponse("no given auth")))
+                    .collectList()
+                    .flatMap { ServerResponseUtil.okResponse(it) }
+                    .onErrorResume { ServerResponseUtil.errorResponse(it) } }
+            ?: ServerResponseUtil.errorResponse("no given auth", 401)
     }
 
+// else
     fun newTopicMakeRequest(request: ServerRequest): Mono<ServerResponse> {
         return request.bodyToMono(NewTopicMakeRequest::class.java)
             .flatMap { this.pushService.newTopicMakeRequest(it) }
             .flatMap { isSuccess ->
-                if (isSuccess) ServerResponse.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just("{\"status\":\"success\"}"))
-                else ServerResponse.badRequest()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just("{\"status\":\"fail\"}")) }
-            .onErrorResume {
-                ServerResponse.badRequest().contentType(MediaType.APPLICATION_JSON)
-                    .body(Mono.just(ErrorResponse(it.message.orElse(it.stackTraceToString()))))
-            }
+                if (isSuccess) ServerResponseUtil.okResponse("{\"status\":\"success\"}")
+                else ServerResponseUtil.errorResponse("fail to make request") }
+            .onErrorResume {ServerResponseUtil.errorResponse(it) }
     }
 }
 
@@ -151,10 +149,11 @@ data class SubscriptionRequest(
 
 data class NewTopicRequest(
     val topicName: String,
-    val description: String
+    val description: String,
+    val type: String
 ) {
     fun toTopic(): Topic {
-        return Topic(UUID.randomUUID().toString(), this.topicName, this.description, null)
+        return Topic(UUID.randomUUID().toString(), this.topicName, this.description,  TopicType.valueOf(this.type), null)
     }
 }
 

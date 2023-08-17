@@ -42,7 +42,6 @@ class OAuthRequesterImpl(
             )
             .retrieve()
             .bodyToMono(GoogleOAuthInfo::class.java)
-            .log()
     }
 
     private fun getGoogleUserInfo(accessToken: String): Mono<GoogleUserInfo> {
@@ -54,7 +53,6 @@ class OAuthRequesterImpl(
                 .build() }
             .retrieve()
             .bodyToMono(GoogleUserInfo::class.java)
-            .log()
     }
 
     override fun getUserByCode(code: String, redirectionUrl: String): Mono<User> {
