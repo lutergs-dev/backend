@@ -77,11 +77,9 @@ class PushRepositoryImpl(
             .flatMap { Mono.just(it.toNotRelatedTopic()) }
     }
 
-    override fun deleteTopic(topicUUID: String): Mono<Boolean> {
+    override fun deleteTopic(topicUUID: String): Mono<Void> {
         return this.pushEntityRepository.findNotRelatedTopicByUUID(topicUUID)
-            .flatMapMany { this.pushEntityRepository.deleteTopic(it) }
-            .collectList()
-            .hasElement()
+            .flatMap { this.pushEntityRepository.deleteTopic(it) }
     }
 
     @Transactional

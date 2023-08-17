@@ -10,7 +10,7 @@ interface PushRepository {
     fun findSubscriptionByAuth(auth: String, getSubscribedTopics: Boolean): Mono<Subscription>
     fun getTopics(): Flux<Topic>
     fun saveNewTopic(topic: Topic): Mono<Topic>
-    fun deleteTopic(topicUUID: String): Mono<Boolean>
+    fun deleteTopic(topicUUID: String): Mono<Void>
     fun findTopicByUUID(topicUUID: String, getSubscribers: Boolean): Mono<Topic>
     fun subscribeToTopic(subscription: Subscription, topic: Topic): Mono<Boolean>
     fun unsubscribeFromTopic(subscription: Subscription, topic: Topic): Mono<Void>

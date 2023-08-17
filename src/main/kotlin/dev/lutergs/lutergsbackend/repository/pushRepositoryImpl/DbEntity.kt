@@ -132,7 +132,7 @@ class PushEntityRepository(
     }
 
     @Transactional
-    fun deleteTopic(topicEntity: TopicEntity): Flux<Void> {
+    fun deleteTopic(topicEntity: TopicEntity): Mono<Void> {
         return this.topicSubscriptionListEntityRepository
             .findAllByTopicId(topicEntity.id!!)
             .flatMap { tsEntity -> this.subscriptionEntityRepository
@@ -144,6 +144,7 @@ class PushEntityRepository(
                 }
             }
             .flatMap { this.subscriptionEntityRepository.delete(it) }
+            .then(this.topicEntityRepository.delete(topicEntity))
     }
 
     fun findNotRelatedTopicByUUID(uuid: String): Mono<TopicEntity> {

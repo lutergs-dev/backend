@@ -35,7 +35,7 @@ class PushService(
             .let { this.pushRepository.saveNewTopic(it) }
     }
 
-    fun deleteTopic(uuid: String): Mono<Boolean> {
+    fun deleteTopic(uuid: String): Mono<Void> {
         return this.pushRepository.deleteTopic(uuid)
     }
 

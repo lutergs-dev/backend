@@ -104,7 +104,7 @@ class PushMessageController(
             ?.let { isAuthorized ->
                 if (isAuthorized) request.queryParamOrNull("uuid")
                     ?.let { this.pushService.deleteTopic(it) }
-                    ?.flatMap { ServerResponseUtil.okResponse(it) }
+                    ?.then(ServerResponseUtil.okResponse("{\"result\":\"success\"}"))
                     ?.onErrorResume {ServerResponseUtil.errorResponse(it) }
                     ?: ServerResponseUtil.errorResponse("no uuid provided")
                 else ServerResponseUtil.errorResponse("unauthorized", 401)}
