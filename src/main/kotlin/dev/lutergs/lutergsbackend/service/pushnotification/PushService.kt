@@ -58,7 +58,7 @@ class PushService(
             .flatMap { this.pushRepository.subscribeToTopic(it.first, it.second) }
     }
 
-    fun unsubscribeFromTopic(subscriptionAuth: String, topicUUID: String): Mono<Boolean> {
+    fun unsubscribeFromTopic(subscriptionAuth: String, topicUUID: String): Mono<Void> {
         return this.pushRepository.findSubscriptionByAuth(subscriptionAuth, false)
             .switchIfEmpty { Mono.error(IllegalArgumentException("subscription is not valid")) }
             .flatMap { subscription ->

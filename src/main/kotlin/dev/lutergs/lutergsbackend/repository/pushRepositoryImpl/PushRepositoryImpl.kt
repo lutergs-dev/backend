@@ -110,7 +110,7 @@ class PushRepositoryImpl(
         }
     }
 
-    override fun unsubscribeFromTopic(subscription: Subscription, topic: Topic): Mono<Boolean> {
+    override fun unsubscribeFromTopic(subscription: Subscription, topic: Topic): Mono<Void> {
         return Mono.zip(
             this.pushEntityRepository.findSubscriptionEntityByAuth(subscription.auth),
             this.pushEntityRepository.findNotRelatedTopicByUUID(topic.uuid)
@@ -119,7 +119,6 @@ class PushRepositoryImpl(
             this.pushEntityRepository.findTopicSubscriptionList(subscriptionEntity, topicEntity)
                 .switchIfEmpty { Mono.error(IllegalStateException("subscription 이 topic 에 구독한 상태가 아닙니다.")) }
                 .flatMap { this.pushEntityRepository.unPairSubscriptionAndTopic(it) }
-                .hasElement()
         }
     }
 

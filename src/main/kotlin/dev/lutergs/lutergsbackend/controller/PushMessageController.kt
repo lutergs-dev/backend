@@ -60,9 +60,7 @@ class PushMessageController(
                 pair.first == null && pair.second != null -> ServerResponseUtil.errorResponse("no auth provided", 401)
                 pair.first != null && pair.second == null -> ServerResponseUtil.errorResponse("no topic UUID provided")
                 else -> this.pushService.unsubscribeFromTopic(pair.first!!, pair.second!!)
-                    .flatMap { isUnsubscribed ->
-                        if (isUnsubscribed) ServerResponseUtil.okResponse(isUnsubscribed)
-                        else ServerResponseUtil.errorResponse("fail unsubscribed") }
+                    .then(ServerResponseUtil.okResponse("{\"result\":\"success\"}"))
                     .onErrorResume { ServerResponseUtil.errorResponse(it) }
             }
         }
