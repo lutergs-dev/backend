@@ -26,7 +26,6 @@ enum class TopicType {
 data class PushMessage(
     val title: String,
     val body: String,
-    val showTimestamp: Long,
     val iconUrl: String?
 )
 

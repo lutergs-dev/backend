@@ -158,7 +158,7 @@ class PushRepositoryImpl(
                     entity.endpoint,
                     entity.getUserPublicKey(),
                     entity.getAuthAsBytes(),
-                    SendPushMessage(topicName, pushMessage.title, pushMessage.body, pushMessage.showTimestamp, pushMessage.iconUrl)
+                    SendPushMessage(topicName, pushMessage.title, pushMessage.body, pushMessage.iconUrl)
                         .let { this.objectMapper.writeValueAsBytes(it) }
                 ),
                 entity.auth

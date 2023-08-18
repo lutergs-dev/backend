@@ -51,7 +51,6 @@ data class SendPushMessage (
     val topic: String,
     val title: String,
     val body: String,
-    val showTimestamp: Long,
     val icon: String?       //url
 ) {
     companion object {
@@ -60,7 +59,6 @@ data class SendPushMessage (
                 topic = topic.name,
                 title = pushMessage.title,
                 body = pushMessage.body,
-                showTimestamp = pushMessage.showTimestamp,
                 icon = pushMessage.iconUrl
             )
         }
