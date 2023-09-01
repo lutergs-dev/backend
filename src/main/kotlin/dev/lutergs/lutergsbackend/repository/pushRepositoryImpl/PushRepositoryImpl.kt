@@ -125,13 +125,14 @@ class PushRepositoryImpl(
             ?.map { PushSubscriptionEntity.fromPushSubscription(it) }
             ?.map { entity ->
                 Pair(
-                    Notification(
-                        entity.endpoint,
-                        entity.getUserPublicKey(),
-                        entity.getAuthAsBytes(),
-                        SendPushMessage.fromTopicAndPushMessage(topic, pushMessage)
-                            .let { this.objectMapper.writeValueAsBytes(it) }
-                    ),
+                    Notification.builder()
+                        .endpoint(entity.endpoint)
+                        .userPublicKey(entity.getUserPublicKey())
+                        .userAuth(entity.getAuthAsBytes())
+                        .payload(SendPushMessage.fromTopicAndPushMessage(topic, pushMessage)
+                            .let { this.objectMapper.writeValueAsBytes(it) })
+                        .topic(topic.uuid)
+                        .build(),
                     entity.auth
                 ) }
             ?.map { pair ->
