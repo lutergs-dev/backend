@@ -76,8 +76,8 @@ class PushService(
         return this.pushRepository.findTopicByUUID(topicUUID = triggerTopicRequest.topicUUID, true)
             .flatMapMany { topic -> when(topic.type) {
                 TopicType.FIXED -> this.pushRepository.getSubscriptions()
-                    .flatMap { this.pushRepository.sendSubscriptionMessage(it, pushMessage, topic.name) }
-                TopicType.UNSUBSCRIBABLE -> this.pushRepository.sendTopicMessage(topic, pushMessage)
+                    .flatMap { this.pushRepository.sendMessageToSubscription(it, pushMessage, topic.name) }
+                TopicType.UNSUBSCRIBABLE -> this.pushRepository.sendMessageToTopicSubscriptions(topic, pushMessage)
             }}
     }
 

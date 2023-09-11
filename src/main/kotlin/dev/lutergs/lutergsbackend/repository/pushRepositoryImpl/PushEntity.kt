@@ -62,5 +62,14 @@ data class SendPushMessage (
                 icon = pushMessage.iconUrl
             )
         }
+
+        fun fromTopicNameAndPushMessage(topicName: String, pushMessage: PushMessage): SendPushMessage {
+            return SendPushMessage(
+                topic = topicName,
+                title = pushMessage.title,
+                body = pushMessage.body,
+                icon = pushMessage.iconUrl
+            )
+        }
     }
 }

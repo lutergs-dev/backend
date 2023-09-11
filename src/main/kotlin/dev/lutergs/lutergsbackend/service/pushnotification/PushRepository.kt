@@ -14,8 +14,8 @@ interface PushRepository {
     fun findTopicByUUID(topicUUID: String, getSubscribers: Boolean): Mono<Topic>
     fun subscribeToTopic(subscription: Subscription, topic: Topic): Mono<Boolean>
     fun unsubscribeFromTopic(subscription: Subscription, topic: Topic): Mono<Void>
-    fun sendTopicMessage(topic: Topic, pushMessage: PushMessage): Flux<Response>
-    fun sendSubscriptionMessage(subscription: Subscription, pushMessage: PushMessage, topicName: String): Mono<Response>
+    fun sendMessageToTopicSubscriptions(topic: Topic, pushMessage: PushMessage): Flux<Response>
+    fun sendMessageToSubscription(subscription: Subscription, pushMessage: PushMessage, topicName: String): Mono<Response>
 }
 
 interface NewTopicMakeRequestRepository {

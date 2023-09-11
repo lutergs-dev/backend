@@ -120,21 +120,18 @@ class PushRepositoryImpl(
         }
     }
 
-    override fun sendTopicMessage(topic: Topic, pushMessage: PushMessage): Flux<Response> {
+    override fun sendMessageToTopicSubscriptions(topic: Topic, pushMessage: PushMessage): Flux<Response> {
         return topic.subscriptions
             ?.map { PushSubscriptionEntity.fromPushSubscription(it) }
-            ?.map { entity ->
-                Pair(
-                    Notification.builder()
-                        .endpoint(entity.endpoint)
-                        .userPublicKey(entity.getUserPublicKey())
-                        .userAuth(entity.getAuthAsBytes())
-                        .payload(SendPushMessage.fromTopicAndPushMessage(topic, pushMessage)
-                            .let { this.objectMapper.writeValueAsBytes(it) })
-                        .topic(topic.uuid)
-                        .build(),
-                    entity.auth
-                ) }
+            ?.map { entity -> Pair(
+                Notification.builder()
+                    .endpoint(entity.endpoint)
+                    .userPublicKey(entity.getUserPublicKey())
+                    .userAuth(entity.getAuthAsBytes())
+                    .payload(SendPushMessage.fromTopicAndPushMessage(topic, pushMessage)
+                        .let { this.objectMapper.writeValueAsBytes(it) })
+                    .build(),
+                entity.auth ) }
             ?.map { pair ->
                 val notification = pair.first
                 val auth = pair.second
@@ -152,18 +149,17 @@ class PushRepositoryImpl(
             ?: throw IllegalStateException("NOT valid subscription!")
     }
 
-    override fun sendSubscriptionMessage(subscription: Subscription, pushMessage: PushMessage, topicName: String): Mono<Response> {
+    override fun sendMessageToSubscription(subscription: Subscription, pushMessage: PushMessage, topicName: String): Mono<Response> {
         return PushSubscriptionEntity.fromPushSubscription(subscription)
             .let { entity -> Pair(
-                Notification(
-                    entity.endpoint,
-                    entity.getUserPublicKey(),
-                    entity.getAuthAsBytes(),
-                    SendPushMessage(topicName, pushMessage.title, pushMessage.body, pushMessage.iconUrl)
-                        .let { this.objectMapper.writeValueAsBytes(it) }
-                ),
-                entity.auth
-            ) }
+                Notification.builder()
+                    .endpoint(entity.endpoint)
+                    .userPublicKey(entity.getUserPublicKey())
+                    .userAuth(entity.getAuthAsBytes())
+                    .payload(SendPushMessage.fromTopicNameAndPushMessage(topicName, pushMessage)
+                        .let { this.objectMapper.writeValueAsBytes(it) })
+                    .build(),
+                entity.auth ) }
             .let { pair ->
                 val notification = pair.first
                 val auth = pair.second
