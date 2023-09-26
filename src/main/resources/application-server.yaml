@@ -22,9 +22,9 @@ server:
 custom:
   server:
     url:
-      frontend: https://${FRONT_SERVER_DOMAIN:localhost}
-      frontend-app: https://${FRONT_APP_DOMAIN}
-      backend: https://${BACKEND_SERVER_DOMAIN:localhost}
+      frontend: ${FRONTEND_URL:'frontend-url'}
+      frontend-app: ${FRONTEND_PWA_URL:'frontend-pwa-url'}
+      backend: ${BACKEND_URL:'backend-url'}
     root-domain: ${ROOT_DOMAIN:localhost}
 
   s3:
@@ -41,10 +41,10 @@ custom:
     is-secure: ${ENABLE_SECURE_TOKEN:false}
 
   push:
-    public-key: ${PUSH_PUBLIC_KEY}
-    private-key: ${PUSH_PRIVATE_KEY}
-    topic-trigger-key: ${PUSH_TOPIC_TRIGGER_KEY}
+    public-key: ${PUSH_PUBLIC_KEY:'push-public-key'}
+    private-key: ${PUSH_PRIVATE_KEY:'push-private-key'}
+    topic-trigger-key: ${PUSH_TOPIC_TRIGGER_KEY:'push-topic-trigger-key'}
     new-topic:
-      request-url: ${PUSH_NEW_TOPIC_REQUEST_URL}
-      username: ${PUSH_NEW_TOPIC_USERNAME}
-      password: ${PUSH_NEW_TOPIC_PASSWORD}
+      request-url: ${PUSH_NEW_TOPIC_REQUEST_URL:'push-new-topic-request-url'}
+      username: ${PUSH_NEW_TOPIC_USERNAME:'push-new-topic-username'}
+      password: ${PUSH_NEW_TOPIC_PASSWORD:'push-new-topic-password'}
