@@ -2,18 +2,21 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.tasks.aot.ProcessAot
 
 plugins {
-    id("org.springframework.boot") version "3.0.6"
-    id("io.spring.dependency-management") version "1.1.0"
-    id("org.graalvm.buildtools.native") version "0.9.20"
-    kotlin("jvm") version "1.7.22"
-    kotlin("plugin.spring") version "1.7.22"
+    id("org.springframework.boot") version "3.1.2"
+    id("io.spring.dependency-management") version "1.1.2"
+    id("org.graalvm.buildtools.native") version "0.9.27"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.spring") version "1.9.10"
 }
 
 group = "dev.lutergs"
 version = "0.0.6"
-java.sourceCompatibility = JavaVersion.VERSION_17
 
-val springBootVersion = "3.1.1"
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+val springBootVersion = "3.1.2"
 val springCloudAwsVersion = "3.0.1"
 
 repositories {
@@ -72,17 +75,9 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-tasks.withType<ProcessAot> {
-    args("--spring.profiles.active=server")
-}
-
 graalvmNative {
-    binaries {
-        named("main") {
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(17))
-                vendor.set(JvmVendorSpec.matching("GraalVM"))
-            })
-        }
+    binaries.all {
+        resources.autodetect()
     }
+    toolchainDetection.set(false)
 }

@@ -1,6 +1,7 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol9-java17-22.3.2 AS builder
+FROM ghcr.io/graalvm/graalvm-community:21-ol9 AS builder
 
 ARG ACTIVE_PROFILES
+ENV JAVA_VERSION=21
 
 RUN mkdir /lutergs-backend
 COPY . /lutergs-backend
@@ -10,7 +11,7 @@ WORKDIR /lutergs-backend
 RUN ./gradlew nativeCompile
 
 
-FROM busybox:latest
+FROM ubuntu:latest
 
 WORKDIR /
 COPY --from=builder /lutergs-backend/build/native/nativeCompile/lutergs-backend application

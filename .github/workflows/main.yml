@@ -7,13 +7,14 @@ on:
 env:
   ENVS: "envs"
 
-# for AWS credentials
+# for AWS credentials and k8s setting
 permissions:
   id-token: write
   contents: read
+  actions: read
 
 jobs:
-  deploy-to-aws:
+  publish-and-deploy:
     runs-on: ubuntu-latest
     environment: main
     steps:
@@ -26,12 +27,11 @@ jobs:
           PEM_STR: ${{ secrets.JWT_TOKEN_ENCRYPT_PEM }}
         run: echo $PEM_STR > ./private.pem
 
-      - name: get credentials of ECS
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_BRANCH_MAIN }}
-          role-session-name: lutergs-backend
-          aws-region: ap-northeast-2
+          role-to-assume: ${{ secrets.AWS_CONNECT_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: login to AWS ECR
         id: login-to-ecr
@@ -40,115 +40,27 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-to-ecr.outputs.registry }}
-          REPOSITORY: lutergs-backend
+          REPOSITORY: ${{ vars.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg ACTIVE_PROFILES=${{ secrets.ACTIVE_PROFILES }} .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest --build-arg ACTIVE_PROFILES=${{ vars.PROFILE }} .
+          docker push $REGISTRY/$REPOSITORY --all-tags
 
-  build-graalvm:
-    runs-on: ubuntu-latest
-    steps:
-      # checkout branch
-      - name: checkout branch
-        uses: actions/checkout@v3
-
-      - name: init graalVM
-        uses: graalvm/setup-graalvm@v1
+      - name: install kubectl
+        id: install-kubectl
+        uses: azure/setup-kubectl@v3
         with:
-          java-version: '17.0.7'
-          distribution: 'graalvm-community'
-          components: 'native-image'
-          set-java-home: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          native-image-job-reports: 'true'
+          version: ${{ vars.K8S_VERSION }} # default is latest stable
 
-      - name: build native image
+      - name: set k8s context
+        id: set-k8s-context
+        uses: azure/k8s-set-context@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }} # Use secret (https://developer.github.com/actions/managing-workflows/storing-secrets/)
+          context: #If left unspecified, current-context from kubeconfig is used as default
+
+      - name: refresh deployment
+        id: refresh-k8s-deployment
         run: |
-          echo 'spring.profiles.active=server' > ./src/main/resources/application.properties
-          ./gradlew nativeCompile
-
-      - name: upload binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: lutergs-backend
-          path: ./build/native/nativeCompile/*
-
-  deploy-to-oracle:
-    runs-on: ubuntu-latest
-    environment: main
-    steps:
-
-      - name: checkout branch
-        uses: actions/checkout@v3
-
-      - name: setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'corretto'
-          java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
-
-      - name: Execute Gradle build
-        run: ./gradlew build
-
-      - name: Set environment Variable
-        run: |
-          echo "APP_VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')" >> $GITHUB_ENV
-          echo "CURRENT_DATE=$(date +%s)" >> $GITHUB_ENV
-
-      - name: move and rename JAR
-        run: |
-          mv build/libs/lutergs-backend-$APP_VERSION.jar app-new.jar
-
-      - name: move JAR to server 1
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SERVER_1_IP }}
-          username: ${{ secrets.SERVER_1_USERNAME }}
-          key: ${{ secrets.SERVER_1_SSH_KEY }}
-          port: 22
-          source: app-new.jar
-          target: ~/lutergs-backend
-
-      - name: move JAR to server 2
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SERVER_2_IP }}
-          username: ${{ secrets.SERVER_2_USERNAME }}
-          key: ${{ secrets.SERVER_2_SSH_KEY }}
-          port: 22
-          source: app-new.jar
-          target: ~/lutergs-backend
-
-      - name: update system daemon of server 1
-        uses: appleboy/ssh-action@v1.0.0
-        env:
-          SHA: ${{ github.sha }}
-        with:
-          host: ${{ secrets.SERVER_1_IP }}
-          username: ${{ secrets.SERVER_1_USERNAME }}
-          key: ${{ secrets.SERVER_1_SSH_KEY }}
-          port: 22
-          envs: SHA
-          script: |
-            mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-$SHA.jar
-            mv ~/lutergs-backend/app-new.jar ~/lutergs-backend/app.jar
-            sudo systemctl restart lutergs-backend
-
-      - name: update system daemon of server 2
-        uses: appleboy/ssh-action@v1.0.0
-        env:
-          SHA: ${{ github.sha }}
-        with:
-          host: ${{ secrets.SERVER_2_IP }}
-          username: ${{ secrets.SERVER_2_USERNAME }}
-          key: ${{ secrets.SERVER_2_SSH_KEY }}
-          envs: SHA
-          script: |
-            mv ~/lutergs-backend/app.jar ~/lutergs-backend/app-$SHA.jar
-            mv ~/lutergs-backend/app-new.jar ~/lutergs-backend/app.jar
-            sudo systemctl restart lutergs-backend
-          
+          kubectl rollout restart deployment ${{ vars.K8S_DEPLOYMENT_NAME }} -n ${{ vars.K8S_NAMESPACE }}
