@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.springframework.boot.gradle.tasks.aot.ProcessAot
 
 plugins {
     id("org.springframework.boot") version "3.1.2"
@@ -16,14 +15,12 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
 }
 
-val springBootVersion = "3.1.4"
-
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -33,10 +30,10 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     // mongoDB reactive
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 
     // oracle reactive
-    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("com.oracle.database.r2dbc:oracle-r2dbc:1.1.1")
     implementation("io.r2dbc:r2dbc-pool:1.0.1.RELEASE")
     implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
