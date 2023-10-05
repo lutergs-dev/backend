@@ -19,6 +19,7 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -72,6 +73,12 @@ tasks.withType<Test> {
 graalvmNative {
     binaries.all {
         resources.autodetect()
+    }
+    binaries {
+        named("main") {
+            // this class should be initialized at build time to avoid error
+            buildArgs.add("--initialize-at-build-time=org.apache.commons.logging.LogFactoryService")
+        }
     }
     toolchainDetection.set(false)
 }
