@@ -19,7 +19,7 @@ data class PageKey(
 )
 
 data class PageValue(
-    val id: Long?,
+    val id: String?,
     val paragraphs: List<String>
 )
 

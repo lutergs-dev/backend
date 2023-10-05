@@ -4,6 +4,7 @@ import dev.lutergs.lutergsbackend.repository.userInterfaceImpl.UserEntityReactiv
 import dev.lutergs.lutergsbackend.service.page.*
 import dev.lutergs.lutergsbackend.service.user.NickName
 import dev.lutergs.lutergsbackend.service.user.User
+import dev.lutergs.lutergsbackend.utils.toDefaultZoneLocalDateTime
 import org.springframework.data.domain.Pageable
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Component
@@ -67,10 +68,10 @@ class PageRepositoryImpl(
 
     private fun toPageKey(from: PageKeyEntity): Mono<PageKey> {
         return this.userEntityReactiveRepository.findById(from.userId!!)
-            .flatMap { Mono.just(PageKey(from.id, from.title!!, Endpoint(from.endpoint!!), NickName(it.nickName!!), from.createdAt!!)) }
+            .flatMap { Mono.just(PageKey(from.id, from.title!!, Endpoint(from.endpoint!!), NickName(it.nickName!!), from.createdAt!!.toDefaultZoneLocalDateTime())) }
     }
 
     private fun toPageKey(from: PageKeyEntity, user: User): PageKey {
-        return PageKey(from.id!!, from.title!!, Endpoint(from.endpoint!!), user.nickName, from.createdAt!!)
+        return PageKey(from.id!!, from.title!!, Endpoint(from.endpoint!!), user.nickName, from.createdAt!!.toDefaultZoneLocalDateTime())
     }
 }

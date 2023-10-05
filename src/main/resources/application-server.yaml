@@ -2,24 +2,18 @@ spring:
   data:
     mongodb:
       uri: mongodb+srv://${MONGO_USERNAME:'username'}:${MONGO_PASSWORD:'password'}@${MONGO_URL:'url'}/${MONGO_DATABASE:'db'}?retryWrites=true&w=majority
-  r2dbc:
-    url: r2dbc:pool:postgres://${POSTGRES_URL:'url'}:${POSTGRES_PORT:'port'}/${POSTGRES_DB:'db'}?schema=${POSTGRES_SCHEMA:'schema'}
-    username: ${POSTGRES_USERNAME:'username'}
-    password: ${POSTGRES_PASSWORD:'password'}
-
-  cloud:
-    aws:
-      credentials:
-        access-key: ${AWS_ACCESS_KEY:'access-key'}
-        secret-key: ${AWS_SECRET_KEY:'secret-key'}
-        instance-profile: true
-      region:
-        static: ap-northeast-2
 
 server:
   port: ${SERVER_PORT:0}
 
 custom:
+  db:
+    descriptor: ${ORACLE_DESCRIPTOR:'connection-string'}
+    username: ${ORACLE_USERNAME:'username'}
+    password: ${ORACLE_PASSWORD:'password'}
+    max-conn: ${ORACLE_MAX_CONN:3}
+    min-conn: ${ORACLE_MIN_CONN:1}
+
   server:
     url:
       frontend: ${FRONTEND_URL:'frontend-url'}
@@ -27,9 +21,14 @@ custom:
       backend: ${BACKEND_URL:'backend-url'}
     root-domain: ${ROOT_DOMAIN:localhost}
 
-  s3:
-    bucket-name: ${AWS_BUCKET_NAME:'bucket-name'}
-    bucket-directory-prefix: ${AWS_BUCKET_PREFIX:'bucket-prefix'}
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:'access-key'}
+      secret-key: ${AWS_SECRET_KEY:'secret-key'}
+    region: ap-northeast-2
+    s3:
+      bucket-name: ${AWS_BUCKET_NAME:'bucket-name'}
+      bucket-directory-prefix: ${AWS_BUCKET_PREFIX:'bucket-prefix'}
 
   oauth:
     client-id: ${OAUTH_CLIENT_ID:'oauth-client-id'}

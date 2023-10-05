@@ -11,14 +11,17 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.OffsetDateTime
 
 
-@Table("push_subscription")
+@Table("PUSH_SUBSCRIPTION")
 class SubscriptionEntity {
     @Id                     var id: Long? = null
-    @Column("endpoint")     var endpoint: String = ""
-    @Column("auth")         var auth: String = ""
-    @Column("key")          var key: String = ""
+    @Column("ENDPOINT")     var endpoint: String = ""
+    @Column("AUTH")         var auth: String = ""
+    @Column("KEY")          var key: String = ""
+    @Column("CREATED_AT")   var createdAt: OffsetDateTime = OffsetDateTime.now()
+    @Column("LAST_LIVE_AT") var lastLiveAt: OffsetDateTime = OffsetDateTime.now()
 
     fun toNotRelatedSubscription(): Subscription {
         return Subscription(this.auth, this.key, this.endpoint, null)
@@ -46,13 +49,15 @@ class SubscriptionEntity {
     }
 }
 
-@Table("push_topic")
+@Table("PUSH_TOPIC")
 class TopicEntity {
     @Id                     var id: Long? = null
-    @Column("uuid")         var uuid: String = ""       // TODO : need unique key
-    @Column("name")         var name: String = ""
-    @Column("description")  var descroption: String = ""
-    @Column("type")         var type: String = ""
+    @Column("UUID")         var uuid: String = ""       // TODO : need unique key
+    @Column("NAME")         var name: String = ""
+    @Column("DESCRIPTION")  var descroption: String = ""
+    @Column("TYPE")         var type: String = ""
+    @Column("DELETED")      var deleted: String = "N"
+    @Column("CREATED_AT")   var createdAt: OffsetDateTime = OffsetDateTime.now()
 
     fun toNotRelatedTopic(): Topic {
         return Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), null)
@@ -81,11 +86,11 @@ class TopicEntity {
     }
 }
 
-@Table("push_topic_subscription_list")
+@Table("PUSH_TOPIC_SUBSCRIPTION_LIST")
 class TopicSubscriptionListEntity {
-    @Id                     var id: Long? = null
-    @Column("sub_id")       var subscriptionId: Long = 0
-    @Column("topic_id")     var topicId: Long = 0
+    @Id                         var id: Long? = null
+    @Column("SUBSCRIPTION_ID")  var subscriptionId: Long = 0
+    @Column("TOPIC_ID")         var topicId: Long = 0
 }
 
 

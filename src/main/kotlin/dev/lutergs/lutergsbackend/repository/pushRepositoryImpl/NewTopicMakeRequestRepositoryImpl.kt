@@ -2,17 +2,14 @@ package dev.lutergs.lutergsbackend.repository.pushRepositoryImpl
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.lutergs.lutergsbackend.service.pushnotification.NewTopicMakeRequestRepository
-import org.apache.http.HttpHeaders
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
-import java.util.Base64
 
+// ntfy requester
 @Component
 class NewTopicMakeRequestRepositoryImpl(
     @Value("\${custom.push.new-topic.request-url}") private val requestUrl: String,

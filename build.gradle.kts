@@ -10,14 +10,13 @@ plugins {
 }
 
 group = "dev.lutergs"
-version = "0.0.6"
+version = "0.1.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
 }
 
-val springBootVersion = "3.1.2"
-val springCloudAwsVersion = "3.0.1"
+val springBootVersion = "3.1.4"
 
 repositories {
     mavenCentral()
@@ -36,20 +35,18 @@ dependencies {
     // mongoDB reactive
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:${springBootVersion}")
 
-    // postgres reactive
+    // oracle reactive
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc:${springBootVersion}")
-    implementation("org.postgresql:r2dbc-postgresql:1.0.1.RELEASE")
-    implementation("io.r2dbc:r2dbc-pool:1.0.0.RELEASE")
+    implementation("com.oracle.database.r2dbc:oracle-r2dbc:1.1.1")
+    implementation("io.r2dbc:r2dbc-pool:1.0.1.RELEASE")
     implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
 
     // MD5 hashing
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
 
-    // AWS
-    implementation(platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}"))
-    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:${springCloudAwsVersion}")
-//    implementation("io.awspring.cloud:spring-cloud-aws-secrets-manager:${springCloudAwsVersion}")
-
+    // AWS SDK
+    implementation(platform("software.amazon.awssdk:bom:2.20.154"))
+    implementation("software.amazon.awssdk:s3")
 
     // JWT
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")

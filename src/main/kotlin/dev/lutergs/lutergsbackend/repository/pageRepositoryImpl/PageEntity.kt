@@ -2,15 +2,18 @@ package dev.lutergs.lutergsbackend.repository.pageRepositoryImpl
 
 import dev.lutergs.lutergsbackend.service.page.PageKey
 import dev.lutergs.lutergsbackend.service.page.PageValue
+import dev.lutergs.lutergsbackend.utils.toDefaultZoneOffsetDateTime
 import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Pageable
+import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 @Table("page_key")
 class PageKeyEntity {
@@ -18,7 +21,7 @@ class PageKeyEntity {
     @Column("endpoint") var endpoint: String? = null
     @Column("user_account_id") var userId: Long? = null
     @Column("title") var title: String? = null
-    @Column("created_at") var createdAt: LocalDateTime? = null
+    @Column("created_at") var createdAt: OffsetDateTime? = null
 
     companion object {
         fun fromPageKey(pageKey: PageKey, userId: Long): PageKeyEntity {
@@ -27,17 +30,17 @@ class PageKeyEntity {
                 this.endpoint = pageKey.endpoint.value
                 this.userId = userId
                 this.title = pageKey.title
-                this.createdAt = pageKey.createdAt
+                this.createdAt = pageKey.createdAt.toDefaultZoneOffsetDateTime()
             }
         }
     }
 }
 
-@Table("page_value")
+@Document("page_value")
 class PageValueEntity {
-    @Id var id: Long? = null        // must be same id as PageKeyEntity id
-    @Column("page_key_id") var pageKeyId: Long? = null
-    @Column("paragraphs") var paragraphs: List<String>? = null
+    @Id var id: String? = null        // must be same id as PageKeyEntity id
+    var pageKeyId: Long? = null
+    var paragraphs: List<String>? = null
 
     fun toPageValue(): PageValue {
         return PageValue(this.id, this.paragraphs!!)
@@ -63,7 +66,7 @@ interface PageKeyReactiveRepository: ReactiveCrudRepository<PageKeyEntity, Long>
 }
 
 @Repository
-interface PageValueReactiveRepository: ReactiveCrudRepository<PageValueEntity, Long> {
+interface PageValueReactiveRepository: ReactiveMongoRepository<PageValueEntity, String> {
     fun findByPageKeyId(pageKeyId: Long): Mono<PageValueEntity>
 }
 

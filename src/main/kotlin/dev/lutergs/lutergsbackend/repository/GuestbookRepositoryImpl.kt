@@ -2,6 +2,8 @@ package dev.lutergs.lutergsbackend.repository
 
 import dev.lutergs.lutergsbackend.service.guestbook.Comment
 import dev.lutergs.lutergsbackend.service.guestbook.GuestbookRepository
+import dev.lutergs.lutergsbackend.utils.toDefaultZoneLocalDateTime
+import dev.lutergs.lutergsbackend.utils.toDefaultZoneOffsetDateTime
 import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Pageable
 import org.springframework.data.relational.core.mapping.Column
@@ -12,21 +14,22 @@ import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
-@Table("guestbook")
+@Table("GUESTBOOK")
 class CommentEntity {
     @Id var id: Long? = null
-    @Column("name") var name: String? = null
-    @Column("password") var password: String? = null
-    @Column("value") var value: String? = null
-    @Column("created_at") var createdAt: LocalDateTime? = null
+    @Column("NAME") var name: String? = null
+    @Column("PASSWORD") var password: String? = null
+    @Column("VALUE") var value: String? = null
+    @Column("CREATED_AT") var createdAt: OffsetDateTime? = null
 
     fun toComment(): Comment {
         return Comment(
             name = this.name!!,
             password = this.password!!,
             value = this.value!!,
-            createdAt = this.createdAt!!
+            createdAt = this.createdAt!!.toDefaultZoneLocalDateTime()
         )
     }
 
@@ -36,7 +39,7 @@ class CommentEntity {
                 this.name = comment.name
                 this.password = comment.password
                 this.value = comment.value
-                this.createdAt = comment.createdAt
+                this.createdAt = comment.createdAt.toDefaultZoneOffsetDateTime()
             }
         }
     }
@@ -48,7 +51,7 @@ interface GuestbookReactiveRepository: ReactiveCrudRepository<CommentEntity, Lon
     fun findDistinctFirstByNameAndPasswordAndCreatedAt(
         name: String,
         password: String,
-        createdAt: LocalDateTime
+        createdAt: OffsetDateTime
     ): Mono<CommentEntity>
 }
 
@@ -70,7 +73,8 @@ class GuestbookRepositoryImpl(
     }
 
     override fun deleteComment(name: String, createdAt: LocalDateTime, password: String): Mono<Void> {
-        return this.guestbookReactiveRepository.findDistinctFirstByNameAndPasswordAndCreatedAt(name, password, createdAt)
-            .flatMap { this.guestbookReactiveRepository.delete(it) }
+        return this.guestbookReactiveRepository.findDistinctFirstByNameAndPasswordAndCreatedAt(
+            name, password, createdAt.toDefaultZoneOffsetDateTime()
+        ).flatMap { this.guestbookReactiveRepository.delete(it) }
     }
 }

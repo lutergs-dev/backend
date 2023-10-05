@@ -7,9 +7,11 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.body
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Date
+import java.util.TimeZone
 
 
 fun String?.orElse(alternativeValue: String): String {
@@ -29,7 +31,15 @@ fun LocalDateTime.toDate(offsetHour: Int): Date {
 }
 
 fun LocalDateTime.toIsoOffsetString(offsetHour: Int): String {
-    return this.atOffset(ZoneOffset.ofHours(9)).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    return this.atOffset(ZoneOffset.ofHours(offsetHour)).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+}
+
+fun OffsetDateTime.toDefaultZoneLocalDateTime(): LocalDateTime {
+    return this.atZoneSameInstant(TimeZone.getDefault().toZoneId()).toLocalDateTime()
+}
+
+fun LocalDateTime.toDefaultZoneOffsetDateTime(): OffsetDateTime {
+    return this.atZone(TimeZone.getDefault().toZoneId()).toOffsetDateTime()
 }
 
 object ServerResponseUtil {
