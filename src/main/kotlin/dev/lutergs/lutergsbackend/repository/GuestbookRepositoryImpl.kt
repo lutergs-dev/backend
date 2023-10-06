@@ -20,14 +20,14 @@ import java.time.OffsetDateTime
 class CommentEntity {
     @Id var id: Long? = null
     @Column("name") var name: String = ""
-    @Column("password") var password: String? = null
+    @Column("password") var password: String? = null        // oracle db treates empty string as null
     @Column("value") var value: String = ""
     @Column("created_at") var createdAt: OffsetDateTime = OffsetDateTime.now()
 
     fun toComment(): Comment {
         return Comment(
             name = this.name,
-            password = this.password!!,
+            password = this.password ?: "",
             value = this.value,
             createdAt = this.createdAt.toDefaultZoneLocalDateTime()
         )

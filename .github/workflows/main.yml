@@ -22,11 +22,6 @@ jobs:
       - name: checkout branch
         uses: actions/checkout@v3
 
-      - name: copy PEM
-        env:
-          PEM_STR: ${{ secrets.JWT_TOKEN_ENCRYPT_PEM }}
-        run: echo $PEM_STR > ./private.pem
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
