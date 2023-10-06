@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "dev.lutergs"
-version = "0.1.0"
+version = "0.1.1"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -55,6 +55,11 @@ dependencies {
     implementation("nl.martijndwars:web-push:5.1.1")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
 
+    // graalVM
+    // https://mvnrepository.com/artifact/org.graalvm.nativeimage/library-support
+//    implementation("org.graalvm.nativeimage:library-support:23.1.0")
+
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
 }
@@ -78,6 +83,9 @@ graalvmNative {
         named("main") {
             // this class should be initialized at build time to avoid error
             buildArgs.add("--initialize-at-build-time=org.apache.commons.logging.LogFactoryService")
+
+            // java -agentlib:native-image-agent=config-output-dir=./src/main/resources/META-INF/native-image -jar build/libs/lutergs-backend-0.1.0.jar
+            // 위 명령어를 통해, reflection 등의 설정을 자동으로 기록할 수 있음.
         }
     }
     toolchainDetection.set(false)

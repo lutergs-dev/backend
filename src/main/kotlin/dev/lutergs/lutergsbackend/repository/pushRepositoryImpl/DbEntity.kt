@@ -14,14 +14,14 @@ import reactor.core.publisher.Mono
 import java.time.OffsetDateTime
 
 
-@Table("PUSH_SUBSCRIPTION")
+@Table("push_subscription")
 class SubscriptionEntity {
     @Id                     var id: Long? = null
-    @Column("ENDPOINT")     var endpoint: String = ""
-    @Column("AUTH")         var auth: String = ""
-    @Column("KEY")          var key: String = ""
-    @Column("CREATED_AT")   var createdAt: OffsetDateTime = OffsetDateTime.now()
-    @Column("LAST_LIVE_AT") var lastLiveAt: OffsetDateTime = OffsetDateTime.now()
+    @Column("endpoint")     var endpoint: String = ""
+    @Column("auth")         var auth: String = ""
+    @Column("key")          var key: String = ""
+    @Column("created_at")   var createdAt: OffsetDateTime = OffsetDateTime.now()
+    @Column("last_live_at") var lastLiveAt: OffsetDateTime = OffsetDateTime.now()
 
     fun toNotRelatedSubscription(): Subscription {
         return Subscription(this.auth, this.key, this.endpoint, null)
@@ -49,28 +49,28 @@ class SubscriptionEntity {
     }
 }
 
-@Table("PUSH_TOPIC")
+@Table("push_topic")
 class TopicEntity {
     @Id                     var id: Long? = null
-    @Column("UUID")         var uuid: String = ""       // TODO : need unique key
-    @Column("NAME")         var name: String = ""
-    @Column("DESCRIPTION")  var descroption: String = ""
-    @Column("TYPE")         var type: String = ""
-    @Column("DELETED")      var deleted: String = "N"
-    @Column("CREATED_AT")   var createdAt: OffsetDateTime = OffsetDateTime.now()
+    @Column("uuid")         var uuid: String = ""
+    @Column("name")         var name: String = ""
+    @Column("description")  var description: String = ""
+    @Column("type")         var type: String = ""
+    @Column("deleted")      var deleted: String = ""
+    @Column("created_at")   var createdAt: OffsetDateTime = OffsetDateTime.now()
 
     fun toNotRelatedTopic(): Topic {
-        return Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), null)
+        return Topic(this.uuid, this.name, this.description, TopicType.valueOf(this.type), null)
     }
 
     fun toRelatedTopic(subscriptionEntities: List<SubscriptionEntity>): Topic {
-        return Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), subscriptionEntities.map { it.toNotRelatedSubscription() })
+        return Topic(this.uuid, this.name, this.description, TopicType.valueOf(this.type), subscriptionEntities.map { it.toNotRelatedSubscription() })
     }
 
     fun toRelatedTopic(subscriptionEntities: Flux<SubscriptionEntity>): Mono<Topic> {
         return subscriptionEntities.flatMap { Mono.just(it.toNotRelatedSubscription()) }
             .collectList()
-            .flatMap { Mono.just(Topic(this.uuid, this.name, this.descroption, TopicType.valueOf(this.type), it)) }
+            .flatMap { Mono.just(Topic(this.uuid, this.name, this.description, TopicType.valueOf(this.type), it)) }
     }
 
     companion object {
@@ -78,7 +78,7 @@ class TopicEntity {
             return TopicEntity().apply {
                 this.uuid = topic.uuid
                 this.name = topic.name
-                this.descroption = topic.description
+                this.description = topic.description
                 this.type = topic.type.toString()
             }
         }
@@ -86,11 +86,11 @@ class TopicEntity {
     }
 }
 
-@Table("PUSH_TOPIC_SUBSCRIPTION_LIST")
+@Table("push_topic_subscription_list")
 class TopicSubscriptionListEntity {
     @Id                         var id: Long? = null
-    @Column("SUBSCRIPTION_ID")  var subscriptionId: Long = 0
-    @Column("TOPIC_ID")         var topicId: Long = 0
+    @Column("subscription_id")  var subscriptionId: Long = 0
+    @Column("topic_id")         var topicId: Long = 0
 }
 
 

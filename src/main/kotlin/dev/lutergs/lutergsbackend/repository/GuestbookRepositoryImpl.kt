@@ -16,20 +16,20 @@ import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
-@Table("GUESTBOOK")
+@Table("guestbook")
 class CommentEntity {
     @Id var id: Long? = null
-    @Column("NAME") var name: String? = null
-    @Column("PASSWORD") var password: String? = null
-    @Column("VALUE") var value: String? = null
-    @Column("CREATED_AT") var createdAt: OffsetDateTime? = null
+    @Column("name") var name: String = ""
+    @Column("password") var password: String? = null
+    @Column("value") var value: String = ""
+    @Column("created_at") var createdAt: OffsetDateTime = OffsetDateTime.now()
 
     fun toComment(): Comment {
         return Comment(
-            name = this.name!!,
+            name = this.name,
             password = this.password!!,
-            value = this.value!!,
-            createdAt = this.createdAt!!.toDefaultZoneLocalDateTime()
+            value = this.value,
+            createdAt = this.createdAt.toDefaultZoneLocalDateTime()
         )
     }
 

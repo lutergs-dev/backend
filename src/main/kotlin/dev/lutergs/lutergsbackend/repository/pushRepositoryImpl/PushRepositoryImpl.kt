@@ -7,17 +7,24 @@ import dev.lutergs.lutergsbackend.service.pushnotification.Subscription
 import dev.lutergs.lutergsbackend.service.pushnotification.Topic
 import nl.martijndwars.webpush.Notification
 import nl.martijndwars.webpush.PushAsyncService
-import org.asynchttpclient.Response as AsyncResponse
+import nl.martijndwars.webpush.Utils
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import java.security.KeyFactory
 import java.security.Security
+import org.asynchttpclient.Response as AsyncResponse
 
+
+//import com.oracle.svm.core.annotate.*;
+//import org.graalvm.nativeimage.ImageSingletons;
+//import org.graalvm.nativeimage.hosted.Feature;
+//import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
+//import org.graalvm.nativeimage.impl.RuntimeClassInitializationSupport;
 
 @Component
 class PushRepositoryImpl(
@@ -28,11 +35,9 @@ class PushRepositoryImpl(
     @Value("\${custom.server.url.frontend-app}") frontendAppUrl: String
 ): PushRepository {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
     init {
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-            Security.addProvider(BouncyCastleProvider());
-        }
+        Security.addProvider(BouncyCastleProvider())
+        KeyFactory.getInstance(Utils.ALGORITHM, BouncyCastleProvider.PROVIDER_NAME)
     }
 
     private val pushAsyncService = PushAsyncService(publicKey, privateKey, frontendAppUrl)
@@ -68,8 +73,12 @@ class PushRepositoryImpl(
     }
 
     override fun getTopics(): Flux<Topic> {
+        println("reach here!")
         return this.pushEntityRepository.getTopics()
-            .flatMap { Mono.just(it.toNotRelatedTopic()) }
+            .flatMap {
+                println("${it.id} ${it.name} ${it.description} ${it.uuid} ${it.deleted} ${it.createdAt}")
+                Mono.just(it.toNotRelatedTopic())
+            }
     }
 
     override fun saveNewTopic(topic: Topic): Mono<Topic> {
@@ -186,3 +195,14 @@ data class Response(
         }
     }
 }
+
+
+//class BouncyCastleFeature : Feature {
+//    override fun afterRegistration(access: Feature.AfterRegistrationAccess) {
+//        RuntimeClassInitialization.initializeAtBuildTime("org.bouncycastle")
+//        val rci: RuntimeClassInitializationSupport = ImageSingletons.lookup(RuntimeClassInitializationSupport::class.java)
+//        rci.rerunInitialization("org.bouncycastle.jcajce.provider.drbg.DRBG\$Default", "")
+//        rci.rerunInitialization("org.bouncycastle.jcajce.provider.drbg.DRBG\$NonceAndIV", "")
+//        Security.addProvider(BouncyCastleProvider())
+//    }
+//}
