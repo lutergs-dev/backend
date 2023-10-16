@@ -38,7 +38,7 @@ jobs:
           REPOSITORY: ${{ vars.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest --build-arg ACTIVE_PROFILES=${{ vars.PROFILE }} ./{{ vars.DOCKERFILE }} .
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest --build-arg ACTIVE_PROFILES=${{ vars.PROFILE }} -f ./{{ vars.DOCKERFILE }} .
           docker push $REGISTRY/$REPOSITORY --all-tags
 
       - name: install kubectl
