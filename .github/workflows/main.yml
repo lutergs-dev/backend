@@ -30,7 +30,7 @@ jobs:
 
       - name: login to AWS ECR
         id: login-to-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
@@ -38,7 +38,7 @@ jobs:
           REPOSITORY: ${{ vars.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest --build-arg ACTIVE_PROFILES=${{ vars.PROFILE }} -f ./{{ vars.DOCKERFILE }} .
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest -f ./{{ vars.DOCKERFILE }} --build-arg ACTIVE_PROFILES=${{ vars.PROFILE }} . 
           docker push $REGISTRY/$REPOSITORY --all-tags
 
       - name: install kubectl
