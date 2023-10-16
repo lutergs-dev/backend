@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "dev.lutergs"
-version = "0.1.1"
+version = "0.2.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -55,11 +55,6 @@ dependencies {
     implementation("nl.martijndwars:web-push:5.1.1")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
 
-    // graalVM
-    // https://mvnrepository.com/artifact/org.graalvm.nativeimage/library-support
-//    implementation("org.graalvm.nativeimage:library-support:23.1.0")
-
-
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
 }
@@ -73,6 +68,14 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+val graalvmReflectionTest: TaskProvider<Test> = tasks.register("graalvm-reflection-test", Test::class.java) {
+    description = "GraalVM reflection test. Run this test to collect metadata"
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching("dev.lutergs.lutergsbackend.graalVM.*")
+    }
 }
 
 graalvmNative {

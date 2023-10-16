@@ -1,7 +1,5 @@
 package dev.lutergs.lutergsbackend.service.pushnotification
 
-import java.util.UUID
-
 
 data class Subscription(
     val auth: String,

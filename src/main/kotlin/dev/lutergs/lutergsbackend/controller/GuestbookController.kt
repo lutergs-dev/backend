@@ -34,12 +34,14 @@ class GuestbookController(
     }
 
     fun getComments(request: ServerRequest): Mono<ServerResponse> {
+
+
         return runCatching {
             GetCommentsRequest(
                 request.queryParamOrNull("index")!!.toInt(),
                 request.queryParamOrNull("size")!!.toInt()
             )
-        }.map { getGuestbookRequest ->
+        }.mapCatching { getGuestbookRequest ->
             this.guestbookService.getComments(getGuestbookRequest)
                 .collectList()
                 .flatMap { Mono.just(GetCommentsResponse(it)) }

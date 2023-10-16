@@ -5,28 +5,17 @@ import com.nimbusds.jose.crypto.MACSigner
 import com.nimbusds.jose.crypto.RSADecrypter
 import com.nimbusds.jose.crypto.RSAEncrypter
 import com.nimbusds.jose.jwk.JWK
-import com.nimbusds.jose.jwk.KeyUse
-import com.nimbusds.jose.jwk.RSAKey
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator
-import com.nimbusds.jose.util.Base64URL
-import com.nimbusds.jwt.EncryptedJWT
-import com.nimbusds.jwt.JWTClaimsSet
 import dev.lutergs.lutergsbackend.service.user.Email
 import dev.lutergs.lutergsbackend.service.user.TokenGenerator
 import dev.lutergs.lutergsbackend.service.user.User
-import dev.lutergs.lutergsbackend.utils.toDate
 import dev.lutergs.lutergsbackend.utils.toIsoOffsetString
 import org.springframework.beans.TypeMismatchException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.stereotype.Component
 import java.io.File
-import java.security.KeyStore
-import java.security.SecureRandom
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.UUID
 
 
 @Component

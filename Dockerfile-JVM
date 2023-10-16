@@ -1,0 +1,16 @@
+FROM openjdk:17 AS builder
+
+ARG ACTIVE_PROFILES
+
+RUN mkdir /lutergs-backend
+COPY . /lutergs-backend
+RUN echo "spring.profiles.active=${ACTIVE_PROFILES}" > /lutergs-backend/src/main/resources/application.properties
+WORKDIR /lutergs-backend
+
+RUN ./gradlew bootJar
+
+FROM openjdk:17 AS builder
+
+WORKDIR /
+COPY --from=builder /lutergs-backend/build/libs/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app.jar", "-Duser.timezone=Asia/Seoul"]

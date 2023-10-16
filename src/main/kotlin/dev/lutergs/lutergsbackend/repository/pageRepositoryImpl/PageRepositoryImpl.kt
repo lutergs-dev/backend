@@ -6,7 +6,6 @@ import dev.lutergs.lutergsbackend.service.user.NickName
 import dev.lutergs.lutergsbackend.service.user.User
 import dev.lutergs.lutergsbackend.utils.toDefaultZoneLocalDateTime
 import org.springframework.data.domain.Pageable
-import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -61,9 +60,7 @@ class PageRepositoryImpl(
                     .let { this.pageValueReactiveRepository.save(it) }
                     .flatMap { Mono.just(Page(
                         this.toPageKey(pageKeyEntity, user),
-                        it.toPageValue()
-                    )) }
-            }
+                        it.toPageValue())) } }
     }
 
     private fun toPageKey(from: PageKeyEntity): Mono<PageKey> {

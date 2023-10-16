@@ -13,7 +13,7 @@ data class Page(
 data class PageKey(
     val id: Long?,
     val title: String,
-    val endpoint: Endpoint,
+    val endpoint: Endpoint,     // 이건 없어지는게 맞다...
     val nickName: NickName,
     val createdAt: LocalDateTime
 )

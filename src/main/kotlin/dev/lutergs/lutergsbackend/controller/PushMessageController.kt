@@ -1,5 +1,6 @@
 package dev.lutergs.lutergsbackend.controller
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import dev.lutergs.lutergsbackend.service.pushnotification.*
 import dev.lutergs.lutergsbackend.utils.ServerResponseUtil
 import org.springframework.beans.factory.annotation.Value
@@ -20,8 +21,8 @@ class PushMessageController(
         return request.queryParamOrNull("auth")
             ?.let { this.pushService.isValidSubscription(it) }
             ?.flatMap {
-                if (it == true) ServerResponseUtil.okResponse("{\"isValid\":\"${it}\"}}")
-                else ServerResponseUtil.errorResponse("{\"isValid\":\"${it}\"}}", 404) }
+                if (it == true) ServerResponseUtil.okResponse(IsValidResponse(it))
+                else ServerResponseUtil.errorResponse(IsValidResponse(it).toString(), 404) }
             ?: ServerResponseUtil.errorResponse("no provided auth")
     }
 
@@ -132,6 +133,14 @@ class PushMessageController(
                 if (isSuccess) ServerResponseUtil.okResponse("{\"status\":\"success\"}")
                 else ServerResponseUtil.errorResponse("fail to make request") }
             .onErrorResume {ServerResponseUtil.errorResponse(it) }
+    }
+}
+
+data class IsValidResponse(
+    @JsonProperty("isValid") val isValid: Boolean
+) {
+    override fun toString(): String {
+        return "{\"isValid\": ${this.isValid}}"
     }
 }
 
