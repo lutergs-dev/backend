@@ -9,7 +9,7 @@ WORKDIR /lutergs-backend
 
 RUN ./gradlew bootJar
 
-FROM openjdk:17 AS builder
+FROM openjdk:17
 
 WORKDIR /
 COPY --from=builder /lutergs-backend/build/libs/*.jar app.jar
