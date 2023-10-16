@@ -1,4 +1,4 @@
-FROM openjdk:17 AS builder
+FROM gradle:8.4.0-jdk21 AS builder
 
 ARG ACTIVE_PROFILES
 
@@ -7,7 +7,7 @@ COPY . /lutergs-backend
 RUN echo "spring.profiles.active=${ACTIVE_PROFILES}" > /lutergs-backend/src/main/resources/application.properties
 WORKDIR /lutergs-backend
 
-RUN ./gradlew bootJar
+RUN gradle bootJar
 
 FROM openjdk:17
 
