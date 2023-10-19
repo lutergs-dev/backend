@@ -13,4 +13,4 @@ FROM openjdk:21
 
 WORKDIR /
 COPY --from=builder /lutergs-backend/build/libs/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "/app.jar", "-Duser.timezone=Asia/Seoul"]
+ENTRYPOINT ["java", "-jar", "-Duser.timezone=Asia/Seoul", "/app.jar"]
