@@ -11,6 +11,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 import java.util.UUID
@@ -42,6 +43,9 @@ class OAuthRequesterImpl(
             )
             .retrieve()
             .bodyToMono(GoogleOAuthInfo::class.java)
+            .onErrorResume(WebClientResponseException::class.java) {
+                Mono.error(RuntimeException("${it.localizedMessage}.    body: ${it.responseBodyAsString}"))
+            }
     }
 
     private fun getGoogleUserInfo(accessToken: String): Mono<GoogleUserInfo> {
@@ -53,6 +57,9 @@ class OAuthRequesterImpl(
                 .build() }
             .retrieve()
             .bodyToMono(GoogleUserInfo::class.java)
+            .onErrorResume(WebClientResponseException::class.java) {
+                Mono.error(RuntimeException("${it.localizedMessage}.    body: ${it.responseBodyAsString}"))
+            }
     }
 
     override fun getUserByCode(code: String, redirectionUrl: String): Mono<User> {
