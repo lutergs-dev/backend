@@ -40,21 +40,16 @@ jobs:
 
       - name: Build and Push to ECR
         uses: docker/build-push-action@v5
-        env:
-          REGISTRY: ${{ steps.login-to-ecr.outputs.registry }}
-          REPOSITORY: ${{ vars.ECR_REPOSITORY_NAME }}
-          IMAGE_TAG: ${{ github.sha }}
-          ARGS_ACTIVE_PROFILE: ${{ vars.PROFILE }}
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           file: ${{ vars.DOCKERFILE }}
           push: true
           tags: |
-            $REGISTRY/$REPOSITORY:$IMAGE_TAG
-            $REGISTRY/$REPOSITORY:latest
+            ${{ steps.login-to-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:${{ github.sha }}
+            ${{ steps.login-to-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY_NAME }}:latest
           build-args: |
-            ACTIVE_PROFILES=$ARGS_ACTIVE_PROFILE
+            ACTIVE_PROFILES=${{ vars.PROFILE }}
 
       - name: install kubectl
         id: install-kubectl
