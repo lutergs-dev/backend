@@ -28,26 +28,30 @@ jobs:
           role-to-assume: ${{ secrets.AWS_CONNECT_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: login to AWS ECR
         id: login-to-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push docker image to Amazon ECR
+      - name: Build and Push to ECR
+        uses: docker/build-push-action@v5
         env:
           REGISTRY: ${{ steps.login-to-ecr.outputs.registry }}
           REPOSITORY: ${{ vars.ECR_REPOSITORY_NAME }}
           IMAGE_TAG: ${{ github.sha }}
-          DOCKER_FILE_NAME: ${{ vars.DOCKERFILE }}
           ARGS_ACTIVE_PROFILE: ${{ vars.PROFILE }}
-        run: |
-          docker buildx build \
-            --platform linux/arm/v8 \
-            --tag $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-            --tag $REGISTRY/$REPOSITORY:latest \
-            -f ./$DOCKER_FILE_NAME \
-            --build-arg ACTIVE_PROFILES=$ARGS_ACTIVE_PROFILE \
-            .
-          docker push $REGISTRY/$REPOSITORY --all-tags
+        with:
+          context: .
+          platform: linux/amd64,linux/arm64
+          file: ${{ vars.DOCKERFILE }}
+          push: true
+          tags: |
+            $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            $REGISTRY/$REPOSITORY:latest
+          build-args: |
+            ACTIVE_PROFILES=$ARGS_ACTIVE_PROFILE
 
       - name: install kubectl
         id: install-kubectl
