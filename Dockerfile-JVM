@@ -1,4 +1,4 @@
-FROM arm64v8/gradle:8.4.0-jdk21 AS builder
+FROM gradle:8.4.0-jdk21 AS builder
 
 ARG ACTIVE_PROFILES
 
@@ -9,7 +9,7 @@ WORKDIR /lutergs-backend
 
 RUN gradle bootJar
 
-FROM arm64v8/openjdk:21
+FROM openjdk:21
 
 WORKDIR /
 COPY --from=builder /lutergs-backend/build/libs/*.jar app.jar

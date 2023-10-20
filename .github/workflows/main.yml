@@ -40,7 +40,13 @@ jobs:
           DOCKER_FILE_NAME: ${{ vars.DOCKERFILE }}
           ARGS_ACTIVE_PROFILE: ${{ vars.PROFILE }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest -f ./$DOCKER_FILE_NAME --build-arg ACTIVE_PROFILES=$ARGS_ACTIVE_PROFILE . 
+          docker buildx build \
+            --platform linux/arm/v8 \
+            --tag $REGISTRY/$REPOSITORY:$IMAGE_TAG \
+            --tag $REGISTRY/$REPOSITORY:latest \
+            -f ./$DOCKER_FILE_NAME \
+            --build-arg ACTIVE_PROFILES=$ARGS_ACTIVE_PROFILE \
+            .
           docker push $REGISTRY/$REPOSITORY --all-tags
 
       - name: install kubectl
