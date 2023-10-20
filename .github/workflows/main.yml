@@ -47,7 +47,7 @@ jobs:
           ARGS_ACTIVE_PROFILE: ${{ vars.PROFILE }}
         with:
           context: .
-          platform: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64
           file: ${{ vars.DOCKERFILE }}
           push: true
           tags: |
