@@ -39,7 +39,6 @@ class PushRepositoryImpl(
         return this.pushEntityRepository.getSubscriptionEntities().flatMap { Mono.just(it.toNotRelatedSubscription()) }
     }
 
-    @Transactional
     override fun saveNewSubscription(subscription: Subscription): Mono<Subscription> {
         return this.pushEntityRepository.findSubscriptionEntityByAuth(subscription.auth)
             .flatMap {
@@ -83,7 +82,6 @@ class PushRepositoryImpl(
             .flatMap { this.pushEntityRepository.deleteTopic(it) }
     }
 
-    @Transactional
     override fun findTopicByUUID(topicUUID: String, getSubscribers: Boolean): Mono<Topic> {
         return this.pushEntityRepository.findNotRelatedTopicByUUID(topicUUID)
             .flatMap {

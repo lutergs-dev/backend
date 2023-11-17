@@ -136,7 +136,6 @@ class PushEntityRepository(
             .let { this.topicEntityRepository.save(it) }
     }
 
-    @Transactional
     fun deleteTopic(topicEntity: TopicEntity): Mono<Void> {
         return this.topicSubscriptionListEntityRepository
             .findAllByTopicId(topicEntity.id!!)
@@ -156,21 +155,18 @@ class PushEntityRepository(
         return this.topicEntityRepository.findDistinctFirstByUuid(uuid)
     }
 
-    @Transactional
     fun getRelatedSubscriptions(topicEntity: TopicEntity): Flux<SubscriptionEntity> {
         return this.topicSubscriptionListEntityRepository
             .findAllByTopicId(topicEntity.id!!)
             .flatMap { this.subscriptionEntityRepository.findById(it.subscriptionId) }
     }
 
-    @Transactional
     fun getSubscribedTopics(subscriptionEntity: SubscriptionEntity): Flux<TopicEntity> {
         return this.topicSubscriptionListEntityRepository
             .findAllBySubscriptionId(subscriptionEntity.id!!)
             .flatMap { this.topicEntityRepository.findById(it.topicId) }
     }
 
-    @Transactional
     fun deleteSubscriptionEntity(subscriptionEntity: SubscriptionEntity): Mono<Void> {
         return this.topicSubscriptionListEntityRepository.findAllBySubscriptionId(subscriptionEntity.id!!)
             .flatMap { this.topicSubscriptionListEntityRepository.delete(it) }

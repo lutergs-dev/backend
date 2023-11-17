@@ -18,7 +18,6 @@ class PageRepositoryImpl(
     private val userEntityReactiveRepository: UserEntityReactiveRepository
 ): PageRepository {
 
-    @Transactional
     override fun getPageByEndpoint(endpoint: Endpoint): Mono<Page> {
         return this.pageKeyReactiveRepository.findByEndpoint(endpoint.value)
             .flatMap { pageKeyEntity -> Mono.zip(
@@ -28,22 +27,18 @@ class PageRepositoryImpl(
             )}.flatMap { Mono.just(Page(it.t1, it.t2)) }
     }
 
-
-    @Transactional
     override fun getPageKeyList(pageIndex: Int, pageSize: Int): Flux<PageKey> {
         return this.pageKeyReactiveRepository.findByOrderByIdDesc(Pageable.ofSize(pageSize).withPage(pageIndex))
             .flatMap { this.toPageKey(it) }
     }
 
 
-    @Transactional
     override fun getPageOfUser(user: User): Flux<PageKey> {
         return this.userEntityReactiveRepository.findDistinctFirstByEmail(user.email.toString())
             .flatMapMany { this.pageKeyReactiveRepository.findByUserId(it.id!!) }
             .flatMap { Mono.just(this.toPageKey(it, user)) }
     }
 
-    @Transactional
     override fun getPageValue(pageKey: PageKey): Mono<PageValue> {
         return pageKey.id
             ?.let { this.pageValueReactiveRepository.findByPageKeyId(it) }
@@ -51,7 +46,6 @@ class PageRepositoryImpl(
             ?: Mono.error(IllegalArgumentException("page ID 가 존재하지 않습니다."))
     }
 
-    @Transactional
     override fun savePage(page: Page, user: User): Mono<Page> {
         return PageKeyEntity.fromPageKey(page.pageKey, user.id!!)
             .let { this.pageKeyReactiveRepository.save(it) }

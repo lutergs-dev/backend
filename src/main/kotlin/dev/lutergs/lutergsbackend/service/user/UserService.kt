@@ -21,7 +21,6 @@ class UserService(
             .switchIfEmpty { Mono.error(NotFoundException()) }
     }
 
-    @Transactional
     fun changeUserName(token: String, rawNewNickname: String): Mono<User> {
         return if (validNicknameRegex.matches(rawNewNickname)) {
             this.getUser(token)
