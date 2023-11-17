@@ -19,13 +19,6 @@ import java.security.KeyFactory
 import java.security.Security
 import org.asynchttpclient.Response as AsyncResponse
 
-
-//import com.oracle.svm.core.annotate.*;
-//import org.graalvm.nativeimage.ImageSingletons;
-//import org.graalvm.nativeimage.hosted.Feature;
-//import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
-//import org.graalvm.nativeimage.impl.RuntimeClassInitializationSupport;
-
 @Component
 class PushRepositoryImpl(
     private val pushEntityRepository: PushEntityRepository,
@@ -73,10 +66,9 @@ class PushRepositoryImpl(
     }
 
     override fun getTopics(): Flux<Topic> {
-        println("reach here!")
         return this.pushEntityRepository.getTopics()
             .flatMap {
-                println("${it.id} ${it.name} ${it.description} ${it.uuid} ${it.deleted} ${it.createdAt}")
+//                println("${it.id} ${it.name} ${it.description} ${it.uuid} ${it.deleted} ${it.createdAt}")
                 Mono.just(it.toNotRelatedTopic())
             }
     }

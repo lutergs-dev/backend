@@ -43,9 +43,10 @@ dependencies {
 
     // oracle reactive
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-    implementation("com.oracle.database.r2dbc:oracle-r2dbc:1.1.1")
+    implementation("com.oracle.database.r2dbc:oracle-r2dbc:1.2.0")
     implementation("io.r2dbc:r2dbc-pool:1.0.1.RELEASE")
     implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
+    implementation("com.oracle.database.jdbc:ojdbc11:21.11.0.0")
 
     // MD5 hashing
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
