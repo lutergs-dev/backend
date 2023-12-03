@@ -17,9 +17,14 @@ class SubscriberWriteRepositoryImpl(
     private val topicSubscriberRelationEntityRepository: TopicSubscriberRelationEntityRepository
 ): SubscriberWriteRepository {
     override fun saveSubscriber(subscriber: Subscriber): Mono<Subscriber> {
-        return SubscriberEntity.fromNotRelatedSubscriber(subscriber)
-            .let { this.subscriberEntityRepository.save(it) }
-            .flatMap { Mono.just(it.toNotRelatedSubscriber()) }
+        return this.subscriberEntityRepository.findDistinctFirstByEndpoint(subscriber.endpoint)
+            .flatMap {          // endpoint 기준이기 때문에, 이미 endpoint 가 존재할 경우 auth, key 만 overwrite 함
+                it.auth = subscriber.auth
+                it.key = subscriber.key
+                this.subscriberEntityRepository.save(it) }
+            .switchIfEmpty { SubscriberEntity.fromNotRelatedSubscriber(subscriber)
+                .let { this.subscriberEntityRepository.save(it) } }
+            .flatMap { Mono.fromCallable { it.toNotRelatedSubscriber() } }
     }
 
     override fun subscribeToTopic(endpoint: String, auth: String, topicUUID: UUID): Mono<Void> {
