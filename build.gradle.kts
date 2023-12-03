@@ -5,12 +5,12 @@ plugins {
     id("org.springframework.boot") version "3.1.2"
     id("io.spring.dependency-management") version "1.1.2"
     id("org.graalvm.buildtools.native") version "0.9.27"
-    kotlin("jvm") version "1.9.20-RC"
-    kotlin("plugin.spring") version "1.9.20-RC"
+    kotlin("jvm") version "1.9.20"
+    kotlin("plugin.spring") version "1.9.20"
 }
 
 group = "dev.lutergs"
-version = "0.2.4"
+version = "1.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -29,20 +29,20 @@ repositories {
 
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.0.4")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.2")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.1")
 
     // jackson datatype
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
 
     // mongoDB reactive
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive:3.0.4")
 
     // oracle reactive
-    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
+    implementation("org.springframework.boot:spring-boot-starter-data-r2dbc:3.0.4")
     implementation("com.oracle.database.r2dbc:oracle-r2dbc:1.2.0")
     implementation("io.r2dbc:r2dbc-pool:1.0.1.RELEASE")
     implementation("io.r2dbc:r2dbc-spi:1.0.0.RELEASE")
@@ -53,7 +53,7 @@ dependencies {
 
     // AWS SDK
     implementation(platform("software.amazon.awssdk:bom:2.20.154"))
-    implementation("software.amazon.awssdk:s3")
+    implementation("software.amazon.awssdk:s3:2.20.68")
 
     // JWT
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")
@@ -64,8 +64,8 @@ dependencies {
     implementation("nl.martijndwars:web-push:5.1.1")
     implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.projectreactor:reactor-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.0")
+    testImplementation("io.projectreactor:reactor-test:3.5.4")
 }
 
 tasks.withType<KotlinCompile> {

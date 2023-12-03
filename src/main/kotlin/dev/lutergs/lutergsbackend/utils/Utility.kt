@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.body
 import reactor.core.publisher.Mono
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -40,6 +41,14 @@ fun OffsetDateTime.toDefaultZoneLocalDateTime(): LocalDateTime {
 
 fun LocalDateTime.toDefaultZoneOffsetDateTime(): OffsetDateTime {
     return this.atZone(TimeZone.getDefault().toZoneId()).toOffsetDateTime()
+}
+
+fun OffsetDateTime.toLong(): Long {
+    return this.toInstant().toEpochMilli()
+}
+
+fun Long.toOffsetDateTime(zoneOffset: ZoneOffset = ZoneOffset.ofHours(9)): OffsetDateTime {
+    return OffsetDateTime.ofInstant(Instant.ofEpochMilli(this), zoneOffset)
 }
 
 object ServerResponseUtil {

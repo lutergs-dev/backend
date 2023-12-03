@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import dev.lutergs.lutergsbackend.controller.*
-import dev.lutergs.lutergsbackend.repository.userInterfaceImpl.TokenGeneratorImpl
-import dev.lutergs.lutergsbackend.service.guestbook.Comment
+import dev.lutergs.lutergsbackend.infra.controller.*
+import dev.lutergs.lutergsbackend.infra.impl.user.TokenGeneratorImpl
 import dev.lutergs.lutergsbackend.service.page.Page
 import dev.lutergs.lutergsbackend.service.page.PageKey
-import dev.lutergs.lutergsbackend.service.pushnotification.Subscription
-import dev.lutergs.lutergsbackend.service.pushnotification.Topic
+import dev.lutergs.lutergsbackend.service.push.subscriber.Subscriber
+import dev.lutergs.lutergsbackend.service.push.topic.Topic
 import dev.lutergs.lutergsbackend.service.user.Email
 import dev.lutergs.lutergsbackend.service.user.NickName
 import dev.lutergs.lutergsbackend.service.user.TokenGenerator
@@ -81,7 +81,7 @@ class SpringBootReflectionTest @Autowired constructor(
             .headers { it.contentType = MediaType.APPLICATION_JSON }
             .body(BodyInserters.fromValue(this.objectMapper.writeValueAsString(newCommentRequest)))
             .retrieve()
-            .bodyToMono(Comment::class.java)
+            .bodyToMono(dev.lutergs.lutergsbackend.domain.guestbook.Comment::class.java)
             .onErrorResume {
                 when (it) {
                     is WebClientResponseException -> {
@@ -208,7 +208,7 @@ class SpringBootReflectionTest @Autowired constructor(
             .block()!!.let { println("GET pushTopics : $it") }
 
 
-        val subscriptionRequest = SubscriptionRequest(
+        val newSubscriberRequest = NewSubscriberRequest(
             endpoint = "https://web.push.apple.com/QMgU3wLVHR89ksVght6AlZeIRpMR56Z6Y0yyXPv8lElwpqXwYG3phhvwnU9UTIsCXuq46OpOIcNI4NKFj2J9Gm5nHl6pXu4UrtcXNSxGXN6r6BAGdN9i-NDYgMnNNKaaNGA7csgCi-Y4eJQqVQfrZ89vXqT0TUGTtYZuHTtAJvk",
             key = "BOyEi/OWn+0B6zSrGBSfOb0NBU9PIuYf0rBfvet5YtMDnNMjX2NJjYGAhJjiPuDETy9qgeWUH+GjVZ3zzmwP+po=",
             auth = "oZejykwmbaL8RQJnCyEQ5Q=="
@@ -218,16 +218,16 @@ class SpringBootReflectionTest @Autowired constructor(
             .uri { it
                 .path("/push/subscription")
                 .build() }
-            .body(BodyInserters.fromValue(this.objectMapper.writeValueAsString(subscriptionRequest)))
+            .body(BodyInserters.fromValue(this.objectMapper.writeValueAsString(newSubscriberRequest)))
             .retrieve()
-            .bodyToMono(Subscription::class.java)
+            .bodyToMono(Subscriber::class.java)
             .block()!!.let { println("POST pushSubscriptions : $it") }
 
         this.webClient
             .get()
             .uri { it
                 .path("/push/subscription/valid")
-                .queryParam("auth", subscriptionRequest.auth)
+                .queryParam("auth", newSubscriberRequest.auth)
                 .build() }
             .retrieve()
             .bodyToMono(IsValidResponse::class.java)
