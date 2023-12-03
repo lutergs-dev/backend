@@ -23,7 +23,7 @@ class CustomWebFilter(
             .apply {
                 this.add("Access-Control-Allow-Origin", serverUrl)
                 this.add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
-                this.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+                this.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, HEAD")
                 this.add("Access-Control-Allow-Credentials", "true")
             }.let { chain.filter(exchange) }
     }

@@ -42,13 +42,7 @@ class SubscriberWriteRepositoryImpl(
         return this.subscriberEntityRepository.findDistinctFirstByEndpoint(endpoint)
             .filter { it.auth == auth }
             .switchIfEmpty { Mono.error(IllegalArgumentException("provided endpoint is not valid or wrong auth is given")) }
-            .flatMap {
-                println("${it.id}, ${it.auth}, ${it.key}")
-                this.topicSubscriberRelationEntityRepository.findBySubscriberAuthAndTopicUUID(it.auth, topicUUID.toString())
-            }
-            .flatMap {
-                println("${it.id}, ${it.topicId}, ${it.subscriptionId}")
-                this.topicSubscriberRelationEntityRepository.delete(it)
-            }
+            .flatMap { this.topicSubscriberRelationEntityRepository.findBySubscriberAuthAndTopicUUID(it.auth, topicUUID.toString()) }
+            .flatMap { this.topicSubscriberRelationEntityRepository.delete(it) }
     }
 }

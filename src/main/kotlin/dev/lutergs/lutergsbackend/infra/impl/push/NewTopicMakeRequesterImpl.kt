@@ -36,10 +36,7 @@ class NewTopicMakeRequesterImpl(
             .retrieve()
             .bodyToMono(NewTopicMakeResponseDto::class.java)
             .flatMap { Mono.just(true) }
-            .onErrorResume {
-                println(it.localizedMessage)
-                Mono.just(false)
-            }
+            .onErrorResume { Mono.just(false) }
     }
 }
 

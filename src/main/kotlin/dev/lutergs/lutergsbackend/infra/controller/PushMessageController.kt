@@ -88,7 +88,7 @@ class PushMessageController(
                             else -> ServerResponseUtil.errorResponse(it, 500)
                         }
                     }
-            }.log()
+            }
     }
 
 // about topics
